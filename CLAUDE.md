@@ -72,11 +72,25 @@ patches the result before building:
    of androidx.work.impl.WorkDatabase" (this is a known landmine, hit and
    fixed the same way in the sibling `chess-app` project — see that repo's
    CLAUDE.md if this resurfaces).
-5. Only runs `dart run flutter_launcher_icons` if `assets/icon/icon.png`
+5. Appends a second `android { compileOptions { ... } }` +
+   `dependencies { coreLibraryDesugaring(...) }` block onto
+   `android/app/build.gradle(.kts)` (Gradle merges multiple `android {}`/
+   `dependencies {}` blocks in one file, so appending is safe and avoids
+   having to locate/patch a `compileOptions` block that may or may not
+   already exist depending on the Flutter template version).
+   `flutter_local_notifications` requires Java 8+ core library desugaring
+   on Android — without this, `flutter build apk --release` hard-fails at
+   the `:app:checkReleaseAarMetadata` Gradle task with "Dependency
+   ':flutter_local_notifications' requires core library desugaring to be
+   enabled for :app." This was caught by the first real CI run after the
+   personal-events feature was added — `flutter analyze`/`flutter test`/
+   `flutter build web` all stay green regardless, since desugaring is an
+   Android-Gradle-only concern with no web/analysis equivalent.
+6. Only runs `dart run flutter_launcher_icons` if `assets/icon/icon.png`
    exists (it doesn't yet in a fresh checkout — no custom launcher icon has
    been supplied). Once one is added, also add `assets/icon/icon.png` under
    `flutter: assets:` in `pubspec.yaml`.
-6. If `KEYSTORE_BASE64` (+ `KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD`)
+7. If `KEYSTORE_BASE64` (+ `KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD`)
    secrets are set, decodes the keystore, writes `android/key.properties`,
    then runs `tool/patch_signing.js` (a committed Node script, not inline
    sed — needs a proper multi-line block insert plus an import line for the

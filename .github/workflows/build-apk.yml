@@ -87,6 +87,46 @@ jobs:
             grep -n -A5 'release {' android/app/build.gradle
           fi
 
+      # flutter_local_notifications requires Java 8+ core library
+      # desugoring on Android — without it, `checkReleaseAarMetadata`
+      # hard-fails the build with "Dependency ':flutter_local_notifications'
+      # requires core library desugaring to be enabled for :app." Appending
+      # a second `android {}`/`dependencies {}` block is valid Gradle (both
+      # DSLs merge multiple blocks into the same config) and avoids having
+      # to locate/patch an existing compileOptions block that may or may
+      # not be present depending on the Flutter template version. Using
+      # `printf` line-by-line instead of a heredoc so every line stays
+      # indented inside this step's YAML block scalar.
+      - name: Enable core library desugaring (flutter_local_notifications)
+        run: |
+          set -e
+          if [ -f android/app/build.gradle.kts ]; then
+            printf '%s\n' \
+              '' \
+              'android {' \
+              '    compileOptions {' \
+              '        isCoreLibraryDesugaringEnabled = true' \
+              '    }' \
+              '}' \
+              '' \
+              'dependencies {' \
+              '    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")' \
+              '}' >> android/app/build.gradle.kts
+          elif [ -f android/app/build.gradle ]; then
+            printf '%s\n' \
+              '' \
+              'android {' \
+              '    compileOptions {' \
+              '        coreLibraryDesugaringEnabled true' \
+              '    }' \
+              '}' \
+              '' \
+              'dependencies {' \
+              "    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'" \
+              '}' >> android/app/build.gradle
+          fi
+          grep -n -A3 'coreLibraryDesugaring' android/app/build.gradle.kts android/app/build.gradle 2>/dev/null || true
+
       # If the KEYSTORE_BASE64 secret is set, decode the release keystore
       # and wire it into android/app/build.gradle(.kts) as the "release"
       # signingConfig via the standard Flutter key.properties pattern
