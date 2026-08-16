@@ -59,4 +59,42 @@ void main() {
       expect(occurrences[i].isAfter(occurrences[i - 1]), isTrue);
     }
   });
+
+  group('PersonalEvent - one-time (non-recurring) events', () {
+    test('repeatsYearly is false once a year is set', () {
+      const event = PersonalEvent(id: '1', title: 'x', isLunar: false, day: 1, month: 1, year: 2030);
+      expect(event.repeatsYearly, isFalse);
+    });
+
+    test('an upcoming one-time solar event resolves to its exact date', () {
+      const event = PersonalEvent(id: '1', title: 'Đám cưới', isLunar: false, day: 20, month: 12, year: 2026);
+      final next = event.nextOccurrence(from: DateTime(2026, 1, 1));
+      expect(next, DateTime(2026, 12, 20));
+    });
+
+    test('a past one-time solar event has no next occurrence', () {
+      const event = PersonalEvent(id: '1', title: 'Đám cưới', isLunar: false, day: 20, month: 1, year: 2020);
+      final next = event.nextOccurrence(from: DateTime(2026, 1, 1));
+      expect(next, isNull);
+    });
+
+    test('a one-time lunar event resolves via LunarCalendar, not a recurring search', () {
+      const event = PersonalEvent(id: '1', title: 'Giỗ', isLunar: true, day: 10, month: 3, year: 2027);
+      final expected = LunarCalendar.lunarToSolar(10, 3, 2027, false)!;
+      final next = event.nextOccurrence(from: DateTime(2026, 1, 1));
+      expect(next, DateTime(expected.$3, expected.$2, expected.$1));
+    });
+
+    test('nextOccurrences returns a single date for an upcoming one-time event', () {
+      const event = PersonalEvent(id: '1', title: 'x', isLunar: false, day: 1, month: 6, year: 2030);
+      final occurrences = event.nextOccurrences(from: DateTime(2026, 1, 1));
+      expect(occurrences, [DateTime(2030, 6, 1)]);
+    });
+
+    test('nextOccurrences returns empty for a past one-time event', () {
+      const event = PersonalEvent(id: '1', title: 'x', isLunar: false, day: 1, month: 6, year: 2010);
+      final occurrences = event.nextOccurrences(from: DateTime(2026, 1, 1));
+      expect(occurrences, isEmpty);
+    });
+  });
 }

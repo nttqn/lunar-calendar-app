@@ -24,6 +24,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
   late bool _isLunar = widget.existing?.isLunar ?? false;
   late int _day = widget.existing?.day ?? DateTime.now().day.clamp(1, 28);
   late int _month = widget.existing?.month ?? DateTime.now().month;
+  late bool _repeatsYearly = widget.existing?.repeatsYearly ?? true;
+  late int _year = widget.existing?.year ?? DateTime.now().year;
   late TimeOfDay _reminderTime = TimeOfDay(
     hour: widget.existing?.reminderHour ?? 8,
     minute: widget.existing?.reminderMinute ?? 0,
@@ -60,6 +62,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
             isLunar: _isLunar,
             day: _day,
             month: _month,
+            year: _repeatsYearly ? null : _year,
+            clearYear: _repeatsYearly,
             reminderHour: _reminderTime.hour,
             reminderMinute: _reminderTime.minute,
           ),
@@ -71,6 +75,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
           isLunar: _isLunar,
           day: _day,
           month: _month,
+          year: _repeatsYearly ? null : _year,
           reminderHour: _reminderTime.hour,
           reminderMinute: _reminderTime.minute,
         );
@@ -138,7 +143,28 @@ class _AddEventScreenState extends State<AddEventScreen> {
               if (_day > maxDay) _day = maxDay;
             }),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
+          RadioGroup<bool>(
+            groupValue: _repeatsYearly,
+            onChanged: (v) => setState(() => _repeatsYearly = v!),
+            child: const Column(
+              children: [
+                RadioListTile<bool>(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text('Lặp lại hằng năm'),
+                  subtitle: Text('Chỉ cần nhập ngày, tháng'),
+                  value: true,
+                ),
+                RadioListTile<bool>(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text('Không lặp lại'),
+                  subtitle: Text('Chọn cả ngày, tháng, năm'),
+                  value: false,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
@@ -160,11 +186,25 @@ class _AddEventScreenState extends State<AddEventScreen> {
                   onChanged: (v) => setState(() => _month = v),
                 ),
               ),
+              if (!_repeatsYearly) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: NumberField(
+                    label: 'Năm',
+                    value: _year,
+                    min: 1900,
+                    max: 2100,
+                    onChanged: (v) => setState(() => _year = v),
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 4),
           Text(
-            'Lặp lại hằng năm vào ngày này (${_isLunar ? "âm lịch" : "dương lịch"}).',
+            _repeatsYearly
+                ? 'Lặp lại hằng năm vào ngày này (${_isLunar ? "âm lịch" : "dương lịch"}).'
+                : 'Chỉ diễn ra một lần vào ngày này (${_isLunar ? "âm lịch" : "dương lịch"}), không lặp lại.',
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 16),

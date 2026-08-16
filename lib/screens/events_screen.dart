@@ -30,8 +30,11 @@ class EventsScreen extends StatelessWidget {
               ),
             );
           }
+          // Past one-time events (nextOccurrence == null) sort to the end.
+          final farFuture = DateTime(9999);
           events.sort(
-            (a, b) => a.nextOccurrence().compareTo(b.nextOccurrence()),
+            (a, b) => (a.nextOccurrence() ?? farFuture)
+                .compareTo(b.nextOccurrence() ?? farFuture),
           );
           return ListView.separated(
             padding: const EdgeInsets.only(bottom: 80),
@@ -92,15 +95,33 @@ class _EventTile extends StatelessWidget {
     final theme = Theme.of(context);
     final next = event.nextOccurrence();
     final daysUntil = next
-        .difference(DateTime(
+        ?.difference(DateTime(
           DateTime.now().year,
           DateTime.now().month,
           DateTime.now().day,
         ))
         .inDays;
-    final dateLabel = event.isLunar
-        ? '${event.day}/${event.month} Âm lịch, lặp lại hằng năm'
-        : '${event.day}/${event.month} Dương lịch, lặp lại hằng năm';
+    final calendarLabel = event.isLunar ? 'Âm lịch' : 'Dương lịch';
+    final dateLabel = event.repeatsYearly
+        ? '${event.day}/${event.month} $calendarLabel, lặp lại hằng năm'
+        : '${event.day}/${event.month}/${event.year} $calendarLabel, một lần';
+
+    Widget trailingChip;
+    if (daysUntil == null) {
+      trailingChip = Chip(
+        label: const Text('Đã qua'),
+        backgroundColor: theme.colorScheme.surfaceContainerHighest,
+        visualDensity: VisualDensity.compact,
+      );
+    } else {
+      trailingChip = Chip(
+        label: Text(daysUntil == 0 ? 'Hôm nay' : 'Còn $daysUntil ngày'),
+        backgroundColor: daysUntil == 0
+            ? Colors.orange.shade100
+            : theme.colorScheme.surfaceContainerHighest,
+        visualDensity: VisualDensity.compact,
+      );
+    }
 
     return GestureDetector(
       onLongPressStart: (details) => _showQuickActions(context, details.globalPosition),
@@ -111,13 +132,7 @@ class _EventTile extends StatelessWidget {
         ),
         title: Text(event.title, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(dateLabel),
-        trailing: Chip(
-          label: Text(daysUntil == 0 ? 'Hôm nay' : 'Còn $daysUntil ngày'),
-          backgroundColor: daysUntil == 0
-              ? Colors.orange.shade100
-              : theme.colorScheme.surfaceContainerHighest,
-          visualDensity: VisualDensity.compact,
-        ),
+        trailing: trailingChip,
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => AddEventScreen(existing: event)),
         ),

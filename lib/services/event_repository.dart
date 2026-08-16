@@ -49,13 +49,15 @@ class EventRepository extends ChangeNotifier {
     await NotificationService.instance.scheduleEvent(event);
   }
 
-  /// Builds a new event with a fresh id and adds it.
+  /// Builds a new event with a fresh id and adds it. Leave [year] null for
+  /// an event that repeats every year; set it for a one-time event.
   Future<void> createEvent({
     required String title,
     String? note,
     required bool isLunar,
     required int day,
     required int month,
+    int? year,
     int reminderHour = 8,
     int reminderMinute = 0,
   }) {
@@ -66,6 +68,7 @@ class EventRepository extends ChangeNotifier {
       isLunar: isLunar,
       day: day,
       month: month,
+      year: year,
       reminderHour: reminderHour,
       reminderMinute: reminderMinute,
     ));
@@ -88,13 +91,19 @@ class EventRepository extends ChangeNotifier {
   }
 
   /// Events that fall on the given calendar day (matched by lunar or solar
-  /// day/month depending on how each event was created).
+  /// day/month depending on how each event was created). A one-time event
+  /// (non-null `year`) additionally only matches that exact year, since it
+  /// doesn't recur.
   List<PersonalEvent> eventsOn(DayInfo info) {
     return _events.where((e) {
       if (e.isLunar) {
-        return e.day == info.lunarDay && e.month == info.lunarMonth;
+        if (e.day != info.lunarDay || e.month != info.lunarMonth) return false;
+        return e.year == null || e.year == info.lunarYear;
       }
-      return e.day == info.solarDate.day && e.month == info.solarDate.month;
+      if (e.day != info.solarDate.day || e.month != info.solarDate.month) {
+        return false;
+      }
+      return e.year == null || e.year == info.solarDate.year;
     }).toList();
   }
 

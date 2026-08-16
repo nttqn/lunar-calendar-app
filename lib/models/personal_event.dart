@@ -2,8 +2,10 @@ import '../lunar/lunar_calendar.dart';
 
 DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
-/// A user-created event anchored to a day/month (solar or lunar) that
-/// repeats every year — birthdays, anniversaries, giỗ, etc.
+/// A user-created event anchored to a day/month (solar or lunar) —
+/// birthdays, anniversaries, giỗ, etc. When [year] is null the event
+/// repeats every year on that day/month; when [year] is set it's a
+/// one-time event on that exact date and has no occurrence after it.
 class PersonalEvent {
   final String id;
   final String title;
@@ -11,6 +13,7 @@ class PersonalEvent {
   final bool isLunar;
   final int day; // 1-31 (solar) or 1-30 (lunar)
   final int month; // 1-12
+  final int? year; // null = repeats yearly; set = one-time only
   final int reminderHour;
   final int reminderMinute;
 
@@ -21,9 +24,12 @@ class PersonalEvent {
     required this.isLunar,
     required this.day,
     required this.month,
+    this.year,
     this.reminderHour = 8,
     this.reminderMinute = 0,
   });
+
+  bool get repeatsYearly => year == null;
 
   PersonalEvent copyWith({
     String? title,
@@ -31,6 +37,8 @@ class PersonalEvent {
     bool? isLunar,
     int? day,
     int? month,
+    bool clearYear = false,
+    int? year,
     int? reminderHour,
     int? reminderMinute,
   }) {
@@ -41,6 +49,7 @@ class PersonalEvent {
       isLunar: isLunar ?? this.isLunar,
       day: day ?? this.day,
       month: month ?? this.month,
+      year: clearYear ? null : (year ?? this.year),
       reminderHour: reminderHour ?? this.reminderHour,
       reminderMinute: reminderMinute ?? this.reminderMinute,
     );
@@ -53,6 +62,7 @@ class PersonalEvent {
         'isLunar': isLunar,
         'day': day,
         'month': month,
+        'year': year,
         'reminderHour': reminderHour,
         'reminderMinute': reminderMinute,
       };
@@ -64,6 +74,7 @@ class PersonalEvent {
         isLunar: json['isLunar'] as bool,
         day: json['day'] as int,
         month: json['month'] as int,
+        year: json['year'] as int?,
         reminderHour: json['reminderHour'] as int? ?? 8,
         reminderMinute: json['reminderMinute'] as int? ?? 0,
       );
@@ -80,9 +91,18 @@ class PersonalEvent {
     return DateTime(y, m, d);
   }
 
-  /// The next time this event falls on/after [from] (defaults to now).
-  DateTime nextOccurrence({DateTime? from}) {
+  /// The next time this event falls on/after [from] (defaults to now), or
+  /// null if it's a one-time event whose date has already passed.
+  DateTime? nextOccurrence({DateTime? from}) {
     final base = _dateOnly(from ?? DateTime.now());
+
+    if (year != null) {
+      final occurrence =
+          isLunar ? _lunarOccurrenceInYear(year!) : DateTime(year!, month, day);
+      if (occurrence == null || occurrence.isBefore(base)) return null;
+      return occurrence;
+    }
+
     if (!isLunar) {
       var candidate = DateTime(base.year, month, day);
       if (candidate.isBefore(base)) {
@@ -103,13 +123,20 @@ class PersonalEvent {
   }
 
   /// The next [count] occurrences on/after [from], used to pre-schedule
-  /// several years of reminders at once (see NotificationService).
+  /// several years of reminders at once (see NotificationService). A
+  /// one-time event has at most one occurrence (empty list if it already
+  /// passed).
   List<DateTime> nextOccurrences({int count = 5, DateTime? from}) {
+    if (year != null) {
+      final occurrence = nextOccurrence(from: from);
+      return occurrence == null ? [] : [occurrence];
+    }
+
     final base = _dateOnly(from ?? DateTime.now());
     final result = <DateTime>[];
     var cursor = base;
     for (var i = 0; i < count; i++) {
-      final occurrence = nextOccurrence(from: cursor);
+      final occurrence = nextOccurrence(from: cursor)!;
       result.add(occurrence);
       cursor = occurrence.add(const Duration(days: 1));
     }

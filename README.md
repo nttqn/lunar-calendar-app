@@ -159,9 +159,10 @@ flutter run -d chrome
 
 ## Sự kiện cá nhân + nhắc lịch
 
-- Thêm sự kiện ở tab **Sự kiện**, chọn ngày dương hoặc âm — sự kiện luôn
-  lặp lại hằng năm vào đúng ngày/tháng đó (không hỗ trợ sự kiện chỉ xảy ra
-  một lần).
+- Thêm sự kiện ở tab **Sự kiện**, chọn ngày dương hoặc âm, và chọn kiểu lặp:
+  **Lặp lại hằng năm** (chỉ cần ngày/tháng) hoặc **Không lặp lại** (chọn cả
+  ngày/tháng/năm — chỉ nhắc đúng một lần). Giữ (long-press) một sự kiện
+  trong danh sách để xóa nhanh (có nút "Hoàn tác").
 - Ứng dụng dùng `flutter_local_notifications` để đặt thông báo nhắc, giờ
   mặc định 8:00 sáng (chỉnh được từng sự kiện). Cần quyền
   **POST_NOTIFICATIONS** (Android 13+) — app tự xin quyền này lúc mở lần

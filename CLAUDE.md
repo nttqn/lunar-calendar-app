@@ -166,6 +166,15 @@ Google's public test banner ad unit ID until real AdMob ad units exist.
 
 **Personal events** (`lib/models/personal_event.dart`,
 `lib/services/event_repository.dart`, `lib/services/notification_service.dart`):
+- `PersonalEvent.year` is the recurrence switch: `null` means the event
+  repeats every year on its day/month (the original/default behavior);
+  a non-null value makes it a one-time event on that exact date, and
+  `nextOccurrence`/`nextOccurrences` return `null`/`[]` once it's passed
+  instead of searching forward (there's nothing to roll forward to). The
+  add-event screen's `RadioGroup<bool>` (`_repeatsYearly`) drives this —
+  when switching from one-time back to yearly, `copyWith` needs
+  `clearYear: true` since `year ?? this.year` alone can't distinguish
+  "leave unchanged" from "explicitly clear to null".
 - `PersonalEvent.nextOccurrence`/`.nextOccurrences` resolve a day/month
   (solar or lunar) to upcoming solar dates, reusing
   `LunarCalendar.lunarToSolar`/`.solarToLunar` for lunar events rather than
@@ -173,6 +182,9 @@ Google's public test banner ad unit ID until real AdMob ad units exist.
   edge cases (lunar day 30 in a 29-day month, solar Feb 29 in a non-leap
   year) that are deliberately left as Dart's/`LunarCalendar`'s existing
   default behavior rather than special-cased.
+- `EventRepository.eventsOn` matches a one-time event's exact year too
+  (not just day/month), so it doesn't incorrectly show up on the same
+  day/month in other years the way a yearly-recurring event does.
 - `EventRepository` is a `ChangeNotifier` singleton
   (`EventRepository.instance`), persisted as one JSON blob in
   `shared_preferences`. Every mutation (`addEvent`/`updateEvent`/
