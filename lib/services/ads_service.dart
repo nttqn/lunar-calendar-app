@@ -17,7 +17,11 @@ class AdsService {
 
   Future<void> initialize() async {
     if (kIsWeb) return;
-    await MobileAds.instance.initialize();
+    try {
+      await MobileAds.instance.initialize();
+    } catch (e) {
+      debugPrint('AdsService.initialize failed: $e');
+    }
   }
 
   BannerAd? createBannerAd({required void Function() onLoaded}) {
@@ -27,8 +31,19 @@ class AdsService {
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
-        onAdLoaded: (_) => onLoaded(),
-        onAdFailedToLoad: (ad, error) => ad.dispose(),
+        onAdLoaded: (_) {
+          debugPrint('AdsService: banner loaded');
+          onLoaded();
+        },
+        // LoadAdError.code/message here is the actual reason (no fill,
+        // invalid ad unit, network, not-yet-serving new unit, etc.) — the
+        // widget just collapses to nothing on failure, so this debugPrint
+        // (visible via `flutter logs` / `adb logcat`) is the only way to
+        // tell those apart when a banner silently doesn't show up.
+        onAdFailedToLoad: (ad, error) {
+          debugPrint('AdsService: banner failed to load — code ${error.code}: ${error.message}');
+          ad.dispose();
+        },
       ),
     );
     banner.load();
