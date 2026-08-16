@@ -31,6 +31,12 @@ class _AddEventScreenState extends State<AddEventScreen> {
 
   bool get _isEditing => widget.existing != null;
 
+  // Guards Save/Delete against double-taps: scheduling notifications
+  // involves several awaited plugin calls, so without this a second tap
+  // before the first save finishes (and pops the screen) creates a
+  // duplicate event instead of being ignored.
+  bool _isSaving = false;
+
   Future<void> _pickTime() async {
     final picked = await showTimePicker(
       context: context,
@@ -40,12 +46,26 @@ class _AddEventScreenState extends State<AddEventScreen> {
   }
 
   Future<void> _save() async {
+    if (_isSaving) return;
     final title = _titleController.text.trim();
     if (title.isEmpty) return;
 
-    if (_isEditing) {
-      await EventRepository.instance.updateEvent(
-        widget.existing!.copyWith(
+    setState(() => _isSaving = true);
+    try {
+      if (_isEditing) {
+        await EventRepository.instance.updateEvent(
+          widget.existing!.copyWith(
+            title: title,
+            note: _noteController.text.trim(),
+            isLunar: _isLunar,
+            day: _day,
+            month: _month,
+            reminderHour: _reminderTime.hour,
+            reminderMinute: _reminderTime.minute,
+          ),
+        );
+      } else {
+        await EventRepository.instance.createEvent(
           title: title,
           note: _noteController.text.trim(),
           isLunar: _isLunar,
@@ -53,25 +73,23 @@ class _AddEventScreenState extends State<AddEventScreen> {
           month: _month,
           reminderHour: _reminderTime.hour,
           reminderMinute: _reminderTime.minute,
-        ),
-      );
-    } else {
-      await EventRepository.instance.createEvent(
-        title: title,
-        note: _noteController.text.trim(),
-        isLunar: _isLunar,
-        day: _day,
-        month: _month,
-        reminderHour: _reminderTime.hour,
-        reminderMinute: _reminderTime.minute,
-      );
+        );
+      }
+      if (mounted) Navigator.of(context).pop();
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
-    if (mounted) Navigator.of(context).pop();
   }
 
   Future<void> _delete() async {
-    await EventRepository.instance.deleteEvent(widget.existing!.id);
-    if (mounted) Navigator.of(context).pop();
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+    try {
+      await EventRepository.instance.deleteEvent(widget.existing!.id);
+      if (mounted) Navigator.of(context).pop();
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   @override
@@ -91,7 +109,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
           if (_isEditing)
             IconButton(
               icon: const Icon(Icons.delete_outline),
-              onPressed: _delete,
+              onPressed: _isSaving ? null : _delete,
             ),
         ],
       ),
@@ -162,8 +180,14 @@ class _AddEventScreenState extends State<AddEventScreen> {
           ),
           const SizedBox(height: 24),
           FilledButton(
-            onPressed: _save,
-            child: const Text('Lưu'),
+            onPressed: _isSaving ? null : _save,
+            child: _isSaving
+                ? const SizedBox(
+                    height: 16,
+                    width: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Lưu'),
           ),
         ],
       ),
