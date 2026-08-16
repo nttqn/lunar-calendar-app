@@ -1,8 +1,24 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:amlich/lunar/can_chi.dart';
 import 'package:amlich/lunar/lunar_calendar.dart';
+import 'package:amlich/models/day_info.dart';
 
 void main() {
+  test('DayInfo.isLastDayOfLunarMonth is true exactly on the day before mùng 1', () {
+    var d = DateTime(2020, 1, 1);
+    final end = DateTime(2027, 1, 1);
+    while (d.isBefore(end)) {
+      final info = DayInfo.fromSolar(d);
+      final next = DayInfo.fromSolar(d.add(const Duration(days: 1)));
+      expect(
+        info.isLastDayOfLunarMonth,
+        next.lunarDay == 1,
+        reason: '$d (lunar ${info.lunarDay}/${info.lunarMonth})',
+      );
+      d = d.add(const Duration(days: 1));
+    }
+  });
+
   group('LunarCalendar.solarToLunar - known Tết (lunar 1/1) dates', () {
     final knownTet = {
       DateTime(2023, 1, 22): (2023, 'Quý Mão'),

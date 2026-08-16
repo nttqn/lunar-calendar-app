@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../models/day_info.dart';
+import '../utils/vi_date.dart';
 import '../widgets/banner_ad_widget.dart';
-import 'day_detail_sheet.dart';
+import '../widgets/date_header_card.dart';
+import '../widgets/day_detail_panel.dart';
+import '../widgets/hoang_dao_hours.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -16,10 +19,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
     DateTime.now().year,
     DateTime.now().month,
   );
+  late DateTime _selectedDate = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    DateTime.now().day,
+  );
 
-  static const List<String> _weekdayLabels = [
-    'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN',
-  ];
+  static const double _rowHeight = 56;
 
   void _changeMonth(int delta) {
     setState(() {
@@ -30,7 +36,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   void _goToday() {
     final now = DateTime.now();
-    setState(() => _displayedMonth = DateTime(now.year, now.month));
+    setState(() {
+      _displayedMonth = DateTime(now.year, now.month);
+      _selectedDate = DateTime(now.year, now.month, now.day);
+    });
+  }
+
+  void _selectDate(DateTime date) {
+    setState(() => _selectedDate = date);
   }
 
   List<DateTime> _gridDays() {
@@ -51,92 +64,108 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return days;
   }
 
-  void _openDetail(DayInfo info) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => DayDetailSheet(info: info),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final days = _gridDays();
     final weekCount = days.length ~/ 7;
+    final selectedInfo = DayInfo.fromSolar(_selectedDate);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lịch Âm Dương'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.today),
-            tooltip: 'Hôm nay',
+          TextButton.icon(
             onPressed: _goToday,
+            icon: const Icon(Icons.calendar_today, size: 16),
+            label: const Text('HÔM NAY'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.orange.shade700,
+            ),
           ),
         ],
       ),
-      body: Column(
-        children: [
-          _MonthHeader(
-            month: _displayedMonth,
-            onPrev: () => _changeMonth(-1),
-            onNext: () => _changeMonth(1),
-          ),
-          Row(
-            children: _weekdayLabels
-                .map((l) => Expanded(
-                      child: Center(
-                        child: Text(
-                          l,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: l == 'CN'
-                                ? Colors.red
-                                : Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ))
-                .toList(),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: Column(
-              children: List.generate(weekCount, (w) {
-                return Expanded(
-                  child: Row(
-                    children: List.generate(7, (d) {
-                      final date = days[w * 7 + d];
-                      final inMonth = date.month == _displayedMonth.month;
-                      final info = DayInfo.fromSolar(date);
-                      return Expanded(
-                        child: _DayCell(
-                          date: date,
-                          info: info,
-                          inMonth: inMonth,
-                          isSunday: d == 6,
-                          onTap: () => _openDetail(info),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                children: [
+                  DateHeaderCard(info: selectedInfo),
+                  _MonthNavRow(
+                    month: _displayedMonth,
+                    onPrev: () => _changeMonth(-1),
+                    onNext: () => _changeMonth(1),
+                  ),
+                  Row(
+                    children: ViDate.shortWeekday
+                        .map((l) => Expanded(
+                              child: Center(
+                                child: Text(
+                                  l,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: l == 'CN'
+                                        ? Colors.red
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ))
+                        .toList(),
+                  ),
+                  const Divider(height: 1),
+                  Column(
+                    children: List.generate(weekCount, (w) {
+                      return SizedBox(
+                        height: _rowHeight,
+                        child: Row(
+                          children: List.generate(7, (d) {
+                            final date = days[w * 7 + d];
+                            final inMonth =
+                                date.month == _displayedMonth.month;
+                            final info = DayInfo.fromSolar(date);
+                            final isSelected = date.year == _selectedDate.year &&
+                                date.month == _selectedDate.month &&
+                                date.day == _selectedDate.day;
+                            return Expanded(
+                              child: _DayCell(
+                                date: date,
+                                info: info,
+                                inMonth: inMonth,
+                                isSunday: d == 6,
+                                isSelected: isSelected,
+                                onTap: () => _selectDate(date),
+                              ),
+                            );
+                          }),
                         ),
                       );
                     }),
                   ),
-                );
-              }),
+                  const SizedBox(height: 4),
+                  const _LegendRow(),
+                  DayDetailPanel(info: selectedInfo),
+                  HoangDaoHours(info: selectedInfo),
+                  const BannerAdWidget(),
+                  const SizedBox(height: 12),
+                ],
+              ),
             ),
-          ),
-          const SafeArea(top: false, child: BannerAdWidget()),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class _MonthHeader extends StatelessWidget {
+class _MonthNavRow extends StatelessWidget {
   final DateTime month;
   final VoidCallback onPrev;
   final VoidCallback onNext;
 
-  const _MonthHeader({
+  const _MonthNavRow({
     required this.month,
     required this.onPrev,
     required this.onNext,
@@ -145,7 +174,7 @@ class _MonthHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -154,10 +183,46 @@ class _MonthHeader extends StatelessWidget {
             'Tháng ${month.month} - ${month.year}',
             style: Theme.of(context)
                 .textTheme
-                .titleLarge
+                .titleMedium
                 ?.copyWith(fontWeight: FontWeight.bold),
           ),
           IconButton(icon: const Icon(Icons.chevron_right), onPressed: onNext),
+        ],
+      ),
+    );
+  }
+}
+
+class _LegendRow extends StatelessWidget {
+  const _LegendRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    Widget item(Color color, String label) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            margin: const EdgeInsets.only(right: 4),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          Text(label, style: theme.textTheme.bodySmall),
+        ],
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Wrap(
+        spacing: 14,
+        runSpacing: 4,
+        children: [
+          item(Colors.red, 'Ngày lễ'),
+          item(Colors.green, 'Ngày hoàng đạo'),
+          item(Colors.grey, 'Ngày hắc đạo'),
         ],
       ),
     );
@@ -169,6 +234,7 @@ class _DayCell extends StatelessWidget {
   final DayInfo info;
   final bool inMonth;
   final bool isSunday;
+  final bool isSelected;
   final VoidCallback onTap;
 
   const _DayCell({
@@ -176,6 +242,7 @@ class _DayCell extends StatelessWidget {
     required this.info,
     required this.inMonth,
     required this.isSunday,
+    required this.isSelected,
     required this.onTap,
   });
 
@@ -183,61 +250,96 @@ class _DayCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isFirstLunarDay = info.lunarDay == 1;
+    final isRam = info.lunarDay == 15;
+    final isLastDay = info.isLastDayOfLunarMonth;
+
     final baseColor = !inMonth
         ? theme.disabledColor
-        : isSunday
+        : isSunday || info.holidayName != null
             ? Colors.red
             : theme.colorScheme.onSurface;
 
+    // Mùng 1 gets the most prominent treatment (filled pill, "d/m" label);
+    // Rằm and the last day of the month get a lighter highlight — all three
+    // are the days Vietnamese lunar calendars traditionally call out.
+    Widget lunarLabel;
+    if (isFirstLunarDay) {
+      lunarLabel = Container(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+        decoration: BoxDecoration(
+          color: inMonth ? Colors.orange.shade600 : theme.disabledColor,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          '${info.lunarDay}/${info.lunarMonth}',
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      );
+    } else if (isRam || isLastDay) {
+      lunarLabel = Container(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+        decoration: BoxDecoration(
+          color: inMonth ? Colors.orange.shade100 : null,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          '${info.lunarDay}',
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: inMonth ? Colors.orange.shade800 : theme.disabledColor,
+          ),
+        ),
+      );
+    } else {
+      lunarLabel = Text(
+        '${info.lunarDay}',
+        style: TextStyle(
+          fontSize: 10,
+          color: !inMonth ? theme.disabledColor : theme.colorScheme.onSurfaceVariant,
+        ),
+      );
+    }
+
     return InkWell(
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(2),
+      child: Container(
+        margin: const EdgeInsets.all(2),
+        decoration: isSelected
+            ? BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.orange.shade200),
+              )
+            : null,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 30,
-              height: 30,
+              width: 28,
+              height: 28,
               alignment: Alignment.center,
               decoration: info.isToday
                   ? BoxDecoration(
-                      color: theme.colorScheme.primary,
+                      color: Colors.orange.shade600,
                       shape: BoxShape.circle,
                     )
                   : null,
               child: Text(
                 '${date.day}',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: info.isToday ? theme.colorScheme.onPrimary : baseColor,
+                  color: info.isToday ? Colors.white : baseColor,
                 ),
               ),
             ),
-            const SizedBox(height: 1),
-            Text(
-              isFirstLunarDay ? 'T${info.lunarMonth}' : '${info.lunarDay}',
-              style: TextStyle(
-                fontSize: 10,
-                color: !inMonth
-                    ? theme.disabledColor
-                    : isFirstLunarDay
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurfaceVariant,
-                fontWeight: isFirstLunarDay ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-            if (info.holidayName != null)
-              Container(
-                margin: const EdgeInsets.only(top: 1),
-                width: 4,
-                height: 4,
-                decoration: const BoxDecoration(
-                  color: Colors.orange,
-                  shape: BoxShape.circle,
-                ),
-              ),
+            const SizedBox(height: 2),
+            lunarLabel,
           ],
         ),
       ),

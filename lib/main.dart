@@ -29,7 +29,7 @@ class LunarCalendarApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       theme: ThemeData(
-        colorSchemeSeed: Colors.red,
+        colorSchemeSeed: Colors.orange,
         useMaterial3: true,
       ),
       home: const HomeShell(),

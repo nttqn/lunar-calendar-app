@@ -58,4 +58,20 @@ class DayInfo {
         solarDate.month == now.month &&
         solarDate.day == now.day;
   }
+
+  /// Whether this is the last day of its lunar month (29th or 30th
+  /// depending on month length) — the day right before the next mùng 1.
+  bool get isLastDayOfLunarMonth {
+    final tomorrow = DayInfo.fromSolar(solarDate.add(const Duration(days: 1)));
+    return tomorrow.lunarDay == 1;
+  }
+
+  /// Mùng 1 (start of lunar month), Rằm (mid-month), or the last day of the
+  /// lunar month — the three days lunar calendars traditionally call out.
+  bool get isNotableLunarDay =>
+      lunarDay == 1 || lunarDay == 15 || isLastDayOfLunarMonth;
+
+  /// The Can-Chi name of the current wall-clock 2-hour block, using this
+  /// day's Can as the anchor (i.e. "if it were this hour, on this day").
+  String get currentHourCanChi => CanChi.hourName(julianDay, DateTime.now().hour);
 }
