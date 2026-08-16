@@ -86,10 +86,13 @@ patches the result before building:
    personal-events feature was added — `flutter analyze`/`flutter test`/
    `flutter build web` all stay green regardless, since desugaring is an
    Android-Gradle-only concern with no web/analysis equivalent.
-6. Only runs `dart run flutter_launcher_icons` if `assets/icon/icon.png`
-   exists (it doesn't yet in a fresh checkout — no custom launcher icon has
-   been supplied). Once one is added, also add `assets/icon/icon.png` under
-   `flutter: assets:` in `pubspec.yaml`.
+6. Runs `dart run flutter_launcher_icons` if `assets/icon/icon.png` exists
+   (it does — see `flutter: assets:` in `pubspec.yaml`), generating every
+   mipmap-*/ic_launcher.png density from that source image. Verified
+   locally once (regenerate `android/` via the same `flutter create`
+   command, then `dart run flutter_launcher_icons`, then check
+   `android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png` isn't broken)
+   before trusting a fresh icon change to CI.
 7. If `KEYSTORE_BASE64` (+ `KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD`)
    secrets are set, decodes the keystore, writes `android/key.properties`,
    then runs `tool/patch_signing.js` (a committed Node script, not inline

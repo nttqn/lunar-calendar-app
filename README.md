@@ -142,18 +142,11 @@ flutter run -d chrome
      lên Play Console — Play Store bắt buộc định dạng AAB cho app mới).
 
 4. **Icon ứng dụng**
-   - Chưa có icon riêng — app hiện dùng icon mặc định của Flutter. Khi có
-     icon thật (ảnh vuông PNG, không bo góc sẵn), lưu vào
-     `assets/icon/icon.png`, thêm dòng
-     ```yaml
-     flutter:
-       assets:
-         - assets/icon/icon.png
-     ```
-     vào `pubspec.yaml`, rồi push lại — workflow sẽ tự phát hiện file và
-     chạy `flutter_launcher_icons` để sinh icon cho mọi kích thước mipmap
-     (bước "Generate launcher icon" trong `build-apk.yml` chỉ chạy khi file
-     đó tồn tại).
+   - Đã có icon riêng tại `assets/icon/icon.png` (mặt trời/mặt trăng +
+     vòng 12 con giáp + chữ "Lịch Âm Dương"). CI tự chạy
+     `flutter_launcher_icons` để sinh icon cho mọi mipmap density mỗi lần
+     build. Muốn đổi icon, thay file `assets/icon/icon.png` (ảnh vuông
+     PNG, nên ≥1024x1024) rồi push lại.
 
 5. **Google Play Console**
    - Đăng ký tài khoản nhà phát triển (phí một lần 25 USD):
