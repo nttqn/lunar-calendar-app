@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../lunar/lunar_calendar.dart';
 import '../models/day_info.dart';
+import '../widgets/max_width_body.dart';
 import '../widgets/number_field.dart';
 
 class ConvertScreen extends StatefulWidget {
@@ -52,102 +53,108 @@ class _ConvertScreenState extends State<ConvertScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Chuyển đổi ngày')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text('Dương lịch → Âm lịch',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Card(
-            child: ListTile(
-              title: Text(
-                DateFormat("dd/MM/yyyy", 'vi').format(_solarPick),
-              ),
-              trailing: const Icon(Icons.calendar_month),
-              onTap: _pickSolarDate,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            color: theme.colorScheme.primaryContainer,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'Âm lịch: ${solarInfo.lunarDay}/${solarInfo.lunarMonth}'
-                '${solarInfo.isLeapMonth ? " (nhuận)" : ""}/${solarInfo.lunarYear}\n'
-                'Năm ${solarInfo.yearCanChi} - Tháng ${solarInfo.monthCanChi} - Ngày ${solarInfo.dayCanChi}',
-                style: theme.textTheme.bodyLarge,
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-          Text('Âm lịch → Dương lịch',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: NumberField(
-                  label: 'Ngày',
-                  value: _lunarDay,
-                  min: 1,
-                  max: 30,
-                  onChanged: (v) => setState(() => _lunarDay = v),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: NumberField(
-                  label: 'Tháng',
-                  value: _lunarMonth,
-                  min: 1,
-                  max: 12,
-                  onChanged: (v) => setState(() => _lunarMonth = v),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 2,
-                child: NumberField(
-                  label: 'Năm',
-                  value: _lunarYear,
-                  min: 1900,
-                  max: 2100,
-                  onChanged: (v) => setState(() => _lunarYear = v),
-                ),
-              ),
-            ],
-          ),
-          CheckboxListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Tháng nhuận'),
-            value: _lunarLeap,
-            onChanged: (v) => setState(() => _lunarLeap = v ?? false),
-          ),
-          FilledButton(
-            onPressed: _convertLunarToSolar,
-            child: const Text('Chuyển đổi'),
-          ),
-          const SizedBox(height: 8),
-          if (_lunarToSolarInvalid)
+      body: MaxWidthBody(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
             Text(
-              'Tháng $_lunarMonth năm $_lunarYear không phải tháng nhuận.',
-              style: const TextStyle(color: Colors.red),
-            )
-          else if (_lunarToSolarResult != null)
+              'Dương lịch → Âm lịch',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Card(
+              child: ListTile(
+                title: Text(DateFormat("dd/MM/yyyy", 'vi').format(_solarPick)),
+                trailing: const Icon(Icons.calendar_month),
+                onTap: _pickSolarDate,
+              ),
+            ),
+            const SizedBox(height: 8),
             Card(
               color: theme.colorScheme.primaryContainer,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Dương lịch: ${_lunarToSolarResult!.$1}/${_lunarToSolarResult!.$2}/${_lunarToSolarResult!.$3}',
+                  'Âm lịch: ${solarInfo.lunarDay}/${solarInfo.lunarMonth}'
+                  '${solarInfo.isLeapMonth ? " (nhuận)" : ""}/${solarInfo.lunarYear}\n'
+                  'Năm ${solarInfo.yearCanChi} - Tháng ${solarInfo.monthCanChi} - Ngày ${solarInfo.dayCanChi}',
                   style: theme.textTheme.bodyLarge,
                 ),
               ),
             ),
-        ],
+            const SizedBox(height: 32),
+            Text(
+              'Âm lịch → Dương lịch',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: NumberField(
+                    label: 'Ngày',
+                    value: _lunarDay,
+                    min: 1,
+                    max: 30,
+                    onChanged: (v) => setState(() => _lunarDay = v),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: NumberField(
+                    label: 'Tháng',
+                    value: _lunarMonth,
+                    min: 1,
+                    max: 12,
+                    onChanged: (v) => setState(() => _lunarMonth = v),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 2,
+                  child: NumberField(
+                    label: 'Năm',
+                    value: _lunarYear,
+                    min: 1900,
+                    max: 2100,
+                    onChanged: (v) => setState(() => _lunarYear = v),
+                  ),
+                ),
+              ],
+            ),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Tháng nhuận'),
+              value: _lunarLeap,
+              onChanged: (v) => setState(() => _lunarLeap = v ?? false),
+            ),
+            FilledButton(
+              onPressed: _convertLunarToSolar,
+              child: const Text('Chuyển đổi'),
+            ),
+            const SizedBox(height: 8),
+            if (_lunarToSolarInvalid)
+              Text(
+                'Tháng $_lunarMonth năm $_lunarYear không phải tháng nhuận.',
+                style: const TextStyle(color: Colors.red),
+              )
+            else if (_lunarToSolarResult != null)
+              Card(
+                color: theme.colorScheme.primaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Dương lịch: ${_lunarToSolarResult!.$1}/${_lunarToSolarResult!.$2}/${_lunarToSolarResult!.$3}',
+                    style: theme.textTheme.bodyLarge,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

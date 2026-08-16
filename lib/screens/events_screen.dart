@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/personal_event.dart';
 import '../services/event_repository.dart';
+import '../widgets/max_width_body.dart';
 import 'add_event_screen.dart';
 
 class EventsScreen extends StatelessWidget {
@@ -12,9 +13,9 @@ class EventsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Sự kiện cá nhân')),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const AddEventScreen()),
-        ),
+        onPressed: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const AddEventScreen())),
         child: const Icon(Icons.add),
       ),
       body: ListenableBuilder(
@@ -33,14 +34,17 @@ class EventsScreen extends StatelessWidget {
           // Past one-time events (nextOccurrence == null) sort to the end.
           final farFuture = DateTime(9999);
           events.sort(
-            (a, b) => (a.nextOccurrence() ?? farFuture)
-                .compareTo(b.nextOccurrence() ?? farFuture),
+            (a, b) => (a.nextOccurrence() ?? farFuture).compareTo(
+              b.nextOccurrence() ?? farFuture,
+            ),
           );
-          return ListView.separated(
-            padding: const EdgeInsets.only(bottom: 80),
-            itemCount: events.length,
-            separatorBuilder: (_, _) => const Divider(height: 1),
-            itemBuilder: (context, i) => _EventTile(event: events[i]),
+          return MaxWidthBody(
+            child: ListView.separated(
+              padding: const EdgeInsets.only(bottom: 80),
+              itemCount: events.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemBuilder: (context, i) => _EventTile(event: events[i]),
+            ),
           );
         },
       ),
@@ -95,11 +99,13 @@ class _EventTile extends StatelessWidget {
     final theme = Theme.of(context);
     final next = event.nextOccurrence();
     final daysUntil = next
-        ?.difference(DateTime(
-          DateTime.now().year,
-          DateTime.now().month,
-          DateTime.now().day,
-        ))
+        ?.difference(
+          DateTime(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day,
+          ),
+        )
         .inDays;
     final calendarLabel = event.isLunar ? 'Âm lịch' : 'Dương lịch';
     final dateLabel = event.repeatsYearly
@@ -124,13 +130,17 @@ class _EventTile extends StatelessWidget {
     }
 
     return GestureDetector(
-      onLongPressStart: (details) => _showQuickActions(context, details.globalPosition),
+      onLongPressStart: (details) =>
+          _showQuickActions(context, details.globalPosition),
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: Colors.blue.shade50,
           child: Icon(Icons.event, color: Colors.blue.shade700),
         ),
-        title: Text(event.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+        title: Text(
+          event.title,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
         subtitle: Text(dateLabel),
         trailing: trailingChip,
         onTap: () => Navigator.of(context).push(

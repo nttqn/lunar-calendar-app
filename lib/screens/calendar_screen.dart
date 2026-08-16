@@ -7,6 +7,7 @@ import '../widgets/banner_ad_widget.dart';
 import '../widgets/date_header_card.dart';
 import '../widgets/day_detail_panel.dart';
 import '../widgets/hoang_dao_hours.dart';
+import '../widgets/max_width_body.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -30,8 +31,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   void _changeMonth(int delta) {
     setState(() {
-      _displayedMonth =
-          DateTime(_displayedMonth.year, _displayedMonth.month + delta);
+      _displayedMonth = DateTime(
+        _displayedMonth.year,
+        _displayedMonth.month + delta,
+      );
     });
   }
 
@@ -51,8 +54,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final first = DateTime(_displayedMonth.year, _displayedMonth.month, 1);
     final leading = first.weekday - DateTime.monday;
     final start = first.subtract(Duration(days: leading));
-    final lastOfMonth =
-        DateTime(_displayedMonth.year, _displayedMonth.month + 1, 0);
+    final lastOfMonth = DateTime(
+      _displayedMonth.year,
+      _displayedMonth.month + 1,
+      0,
+    );
     final trailing = DateTime.sunday - lastOfMonth.weekday;
     final end = lastOfMonth.add(Duration(days: trailing));
 
@@ -96,17 +102,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
         child: Column(
           children: [
             Expanded(
-              child: ListView(
-                children: [
-                  DateHeaderCard(info: selectedInfo),
-                  _MonthNavRow(
-                    month: _displayedMonth,
-                    onPrev: () => _changeMonth(-1),
-                    onNext: () => _changeMonth(1),
-                  ),
-                  Row(
-                    children: ViDate.shortWeekday
-                        .map((l) => Expanded(
+              child: MaxWidthBody(
+                child: ListView(
+                  children: [
+                    DateHeaderCard(info: selectedInfo),
+                    _MonthNavRow(
+                      month: _displayedMonth,
+                      onPrev: () => _changeMonth(-1),
+                      onNext: () => _changeMonth(1),
+                    ),
+                    Row(
+                      children: ViDate.shortWeekday
+                          .map(
+                            (l) => Expanded(
                               child: Center(
                                 child: Text(
                                   l,
@@ -114,58 +122,61 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     fontWeight: FontWeight.bold,
                                     color: l == 'CN'
                                         ? Colors.red
-                                        : Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant,
+                                        : Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                               ),
-                            ))
-                        .toList(),
-                  ),
-                  const Divider(height: 1),
-                  Column(
-                    children: List.generate(weekCount, (w) {
-                      return SizedBox(
-                        height: _rowHeight,
-                        child: Row(
-                          children: List.generate(7, (d) {
-                            final date = days[w * 7 + d];
-                            final inMonth =
-                                date.month == _displayedMonth.month;
-                            final info = DayInfo.fromSolar(date);
-                            final isSelected = date.year == _selectedDate.year &&
-                                date.month == _selectedDate.month &&
-                                date.day == _selectedDate.day;
-                            final hasEvent = EventRepository.instance
-                                .eventsOn(info)
-                                .isNotEmpty;
-                            return Expanded(
-                              child: _DayCell(
-                                date: date,
-                                info: info,
-                                inMonth: inMonth,
-                                isSunday: d == 6,
-                                isSelected: isSelected,
-                                hasEvent: hasEvent,
-                                onTap: () => _selectDate(date),
-                              ),
-                            );
-                          }),
-                        ),
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 4),
-                  const _LegendRow(),
-                  DayDetailPanel(
-                    info: selectedInfo,
-                    events: EventRepository.instance.eventsOn(selectedInfo),
-                  ),
-                  HoangDaoHours(info: selectedInfo),
-                  const BannerAdWidget(),
-                  const SizedBox(height: 12),
-                ],
+                            ),
+                          )
+                          .toList(),
+                    ),
+                    const Divider(height: 1),
+                    Column(
+                      children: List.generate(weekCount, (w) {
+                        return SizedBox(
+                          height: _rowHeight,
+                          child: Row(
+                            children: List.generate(7, (d) {
+                              final date = days[w * 7 + d];
+                              final inMonth =
+                                  date.month == _displayedMonth.month;
+                              final info = DayInfo.fromSolar(date);
+                              final isSelected =
+                                  date.year == _selectedDate.year &&
+                                  date.month == _selectedDate.month &&
+                                  date.day == _selectedDate.day;
+                              final hasEvent = EventRepository.instance
+                                  .eventsOn(info)
+                                  .isNotEmpty;
+                              return Expanded(
+                                child: _DayCell(
+                                  date: date,
+                                  info: info,
+                                  inMonth: inMonth,
+                                  isSunday: d == 6,
+                                  isSelected: isSelected,
+                                  hasEvent: hasEvent,
+                                  onTap: () => _selectDate(date),
+                                ),
+                              );
+                            }),
+                          ),
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 4),
+                    const _LegendRow(),
+                    DayDetailPanel(
+                      info: selectedInfo,
+                      events: EventRepository.instance.eventsOn(selectedInfo),
+                    ),
+                    HoangDaoHours(info: selectedInfo),
+                    const BannerAdWidget(),
+                    const SizedBox(height: 12),
+                  ],
+                ),
               ),
             ),
           ],
@@ -196,10 +207,9 @@ class _MonthNavRow extends StatelessWidget {
           IconButton(icon: const Icon(Icons.chevron_left), onPressed: onPrev),
           Text(
             'Tháng ${month.month} - ${month.year}',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           IconButton(icon: const Icon(Icons.chevron_right), onPressed: onNext),
         ],
@@ -274,8 +284,8 @@ class _DayCell extends StatelessWidget {
     final baseColor = !inMonth
         ? theme.disabledColor
         : isSunday || info.holidayName != null
-            ? Colors.red
-            : theme.colorScheme.onSurface;
+        ? Colors.red
+        : theme.colorScheme.onSurface;
 
     // Mùng 1 gets the most prominent treatment (filled pill, "d/m" label);
     // Rằm and the last day of the month get a lighter highlight — all three
@@ -318,7 +328,9 @@ class _DayCell extends StatelessWidget {
         '${info.lunarDay}',
         style: TextStyle(
           fontSize: 10,
-          color: !inMonth ? theme.disabledColor : theme.colorScheme.onSurfaceVariant,
+          color: !inMonth
+              ? theme.disabledColor
+              : theme.colorScheme.onSurfaceVariant,
         ),
       );
     }
