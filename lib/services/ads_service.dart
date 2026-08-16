@@ -1,12 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-/// Wraps a persistent AdMob banner behind Google's official TEST ad unit
-/// ID. Swap for a real AdMob ad unit ID before publishing — see README.md
-/// "Trước khi publish". Deliberately banner-only (no interstitial): this
-/// app gets opened many times a day for a quick glance, so an interstitial
-/// on every open would work against the "nhẹ, ít quảng cáo" positioning
-/// this app is going for.
+/// Wraps a persistent AdMob banner. Deliberately banner-only (no
+/// interstitial): this app gets opened many times a day for a quick
+/// glance, so an interstitial on every open would work against the "nhẹ,
+/// ít quảng cáo" positioning this app is going for.
 ///
 /// `google_mobile_ads` only supports Android/iOS, so every entry point
 /// here is a no-op on web/desktop — keeps `flutter run -d chrome` usable
@@ -15,7 +13,7 @@ class AdsService {
   AdsService._();
   static final AdsService instance = AdsService._();
 
-  static const String bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
+  static const String bannerAdUnitId = 'ca-app-pub-9078637596840810/1335618574';
 
   Future<void> initialize() async {
     if (kIsWeb) return;

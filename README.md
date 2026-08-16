@@ -92,15 +92,13 @@ flutter run -d chrome
 
 ## Trước khi publish lên Google Play — checklist
 
-1. **Tài khoản AdMob thật**
-   - Đăng ký tại https://admob.google.com, tạo một App mới, tạo 1 Ad unit
-     Banner.
-   - Lấy "App ID" (dạng `ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy`) và thêm
-     vào GitHub repo: Settings → Secrets and variables → Actions → New
-     repository secret, tên `ADMOB_APP_ID`.
-   - Thay hằng số `bannerAdUnitId` trong
-     [lib/services/ads_service.dart](lib/services/ads_service.dart) bằng
-     Ad unit ID thật của bạn.
+1. **Tài khoản AdMob thật** — đã cấu hình:
+   - `bannerAdUnitId` trong
+     [lib/services/ads_service.dart](lib/services/ads_service.dart) đã là
+     Ad unit ID thật.
+   - App ID thật cần được thêm làm GitHub secret `ADMOB_APP_ID` (Settings →
+     Secrets and variables → Actions → New repository secret) — **secret
+     này do bạn tự thêm trên GitHub**, không thể set qua code/CI.
    - Test ads chỉ để dev thử, **không được** tự bấm quảng cáo của chính
      mình sau khi dùng ID thật — vi phạm chính sách AdMob có thể bị khóa
      tài khoản.
