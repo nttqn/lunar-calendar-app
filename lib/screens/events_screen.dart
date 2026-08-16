@@ -24,7 +24,7 @@ class EventsScreen extends StatelessWidget {
           if (events.isEmpty) {
             return Center(
               child: Text(
-                'Chưa có sự kiện nào.\nBấm + để thêm sự kiện (sinh nhật, giỗ...).',
+                'Chưa có sự kiện nào.\nBấm + để thêm sự kiện (sinh nhật, giỗ...).\nGiữ một sự kiện để xóa nhanh.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
@@ -50,6 +50,43 @@ class _EventTile extends StatelessWidget {
 
   const _EventTile({required this.event});
 
+  Future<void> _showQuickActions(BuildContext context, Offset position) async {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final selected = await showMenu<String>(
+      context: context,
+      position: RelativeRect.fromRect(
+        position & const Size(1, 1),
+        Offset.zero & overlay.size,
+      ),
+      items: [
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(Icons.delete_outline, color: Colors.red.shade600),
+              const SizedBox(width: 8),
+              const Text('Xóa sự kiện'),
+            ],
+          ),
+        ),
+      ],
+    );
+    if (selected != 'delete' || !context.mounted) return;
+
+    await EventRepository.instance.deleteEvent(event.id);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Đã xóa "${event.title}"'),
+        action: SnackBarAction(
+          label: 'Hoàn tác',
+          // Re-adds with the same id, which also re-schedules its reminders.
+          onPressed: () => EventRepository.instance.addEvent(event),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -65,22 +102,25 @@ class _EventTile extends StatelessWidget {
         ? '${event.day}/${event.month} Âm lịch, lặp lại hằng năm'
         : '${event.day}/${event.month} Dương lịch, lặp lại hằng năm';
 
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: Colors.blue.shade50,
-        child: Icon(Icons.event, color: Colors.blue.shade700),
-      ),
-      title: Text(event.title, style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(dateLabel),
-      trailing: Chip(
-        label: Text(daysUntil == 0 ? 'Hôm nay' : 'Còn $daysUntil ngày'),
-        backgroundColor: daysUntil == 0
-            ? Colors.orange.shade100
-            : theme.colorScheme.surfaceContainerHighest,
-        visualDensity: VisualDensity.compact,
-      ),
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => AddEventScreen(existing: event)),
+    return GestureDetector(
+      onLongPressStart: (details) => _showQuickActions(context, details.globalPosition),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Colors.blue.shade50,
+          child: Icon(Icons.event, color: Colors.blue.shade700),
+        ),
+        title: Text(event.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+        subtitle: Text(dateLabel),
+        trailing: Chip(
+          label: Text(daysUntil == 0 ? 'Hôm nay' : 'Còn $daysUntil ngày'),
+          backgroundColor: daysUntil == 0
+              ? Colors.orange.shade100
+              : theme.colorScheme.surfaceContainerHighest,
+          visualDensity: VisualDensity.compact,
+        ),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => AddEventScreen(existing: event)),
+        ),
       ),
     );
   }
