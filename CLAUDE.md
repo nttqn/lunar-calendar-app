@@ -6,11 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A Flutter Android Vietnamese lunar calendar app (`Lịch Âm Dương`): month
 grid with solar + lunar dates, day/hour "hoàng đạo" (auspicious) info,
-Can-Chi naming, fixed holidays, and a solar↔lunar date converter. AdMob
-banner ad wired in, intended for Google Play. There is no native `android/`
-(or `ios/`) directory in this repo — see "Android project is generated,
-not committed" below before assuming any Gradle/Manifest file exists
-locally.
+Can-Chi naming, fixed holidays, a solar↔lunar date converter, and personal
+events (birthdays, giỗ...) keyed to a solar or lunar day/month that repeat
+every year, with local reminder notifications. AdMob banner ad wired in,
+intended for Google Play. There is no native `android/` (or `ios/`)
+directory in this repo — see "Android project is generated, not committed"
+below before assuming any Gradle/Manifest file exists locally.
 
 ## Commands
 
@@ -29,9 +30,10 @@ flutter build apk --release        # debug-signed test APK
 flutter build appbundle --release  # AAB for actual Play Store upload (needs real signing config)
 ```
 
-There is no `test/` directory with automated tests yet, beyond whatever
-ad-hoc scripts were used to spot-check the lunar conversion math during
-development.
+`test/lunar_calendar_test.dart` and `test/personal_event_test.dart` cover
+the lunar conversion math (spot-checked against known Tết dates, round-trip
+stability) and the personal-event recurrence math respectively — run with
+`flutter test`.
 
 Real APK builds happen in CI: push to `main` (or trigger
 `workflow_dispatch`) and GitHub Actions runs
@@ -48,8 +50,12 @@ patches the result before building:
 1. Injects the AdMob App ID (`meta-data` in `AndroidManifest.xml`) — reads
    the `ADMOB_APP_ID` GitHub secret, falling back to Google's public test
    App ID if unset.
-2. Adds the `INTERNET` permission to the main manifest (Flutter's default
-   template only grants it in the debug-variant manifest).
+2. Adds the `INTERNET` and `POST_NOTIFICATIONS` permissions to the main
+   manifest (Flutter's default template only grants `INTERNET` in the
+   debug-variant manifest, and doesn't add `POST_NOTIFICATIONS` at all —
+   needed for `flutter_local_notifications` to post reminders on Android
+   13+, requested at runtime via
+   `NotificationService.initialize()`).
 3. Forces `minSdkVersion 24` / `compileSdk 36` in `android/app/build.gradle`
    (or `.gradle.kts`). `google_mobile_ads` requires minSdk 24+; without the
    override, the value falls through to Flutter's own
@@ -140,3 +146,43 @@ interstitial — this app is opened many times a day for a quick glance, and
 an interstitial on every open would undercut the "nhẹ, ít quảng cáo"
 positioning the app is going for (see README's project description). Uses
 Google's public test banner ad unit ID until real AdMob ad units exist.
+
+**Personal events** (`lib/models/personal_event.dart`,
+`lib/services/event_repository.dart`, `lib/services/notification_service.dart`):
+- `PersonalEvent.nextOccurrence`/`.nextOccurrences` resolve a day/month
+  (solar or lunar) to upcoming solar dates, reusing
+  `LunarCalendar.lunarToSolar`/`.solarToLunar` for lunar events rather than
+  any separate date math — see those methods' doc comments for the known
+  edge cases (lunar day 30 in a 29-day month, solar Feb 29 in a non-leap
+  year) that are deliberately left as Dart's/`LunarCalendar`'s existing
+  default behavior rather than special-cased.
+- `EventRepository` is a `ChangeNotifier` singleton
+  (`EventRepository.instance`), persisted as one JSON blob in
+  `shared_preferences`. Every mutation (`addEvent`/`updateEvent`/
+  `deleteEvent`) calls into `NotificationService` to reschedule/cancel that
+  event's notifications — the repository is the only place that should
+  touch `NotificationService`, so screens never schedule notifications
+  directly.
+- There's no backend/push service, so **`NotificationService.scheduleEvent`
+  pre-schedules only the next 5 yearly occurrences** as individual one-off
+  `zonedSchedule` calls (`AndroidScheduleMode.inexactAllowWhileIdle`,
+  chosen specifically to avoid needing the `SCHEDULE_EXACT_ALARM`
+  permission). `EventRepository.rescheduleAll()` runs once on every app
+  startup (see `main()`) to top up occurrences consumed since the last
+  launch — if the app is never reopened for 5+ years, reminders lapse until
+  it is. This is a deliberate, documented trade-off (see README), not a bug
+  to fix.
+- `CalendarScreen` wraps its whole build in a `ListenableBuilder` on
+  `EventRepository.instance` — necessary because `HomeShell` (main.dart)
+  keeps all 3 tabs alive via `IndexedStack`, so `CalendarScreen` doesn't get
+  a fresh `build()` just from switching tabs; without the listener, adding
+  an event in the Sự Kiện tab wouldn't show up on the calendar until some
+  unrelated rebuild happened to fire.
+- **Lesson from this feature, worth repeating for any future overlay
+  widget**: a `FloatingActionButton` was first used for the calendar's
+  "Hôm nay" button, and it silently hid the last giờ-hoàng-đạo tile
+  whenever the page was short enough not to need scrolling — invisible to
+  `flutter analyze`/`flutter test`, only caught by an actual screenshot.
+  Moved to an AppBar action instead (see `calendar_screen.dart`). Any
+  screen-fixed overlay added over scrollable content should get a real
+  screenshot check, not just a green test run.

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../lunar/lunar_calendar.dart';
 import '../models/day_info.dart';
+import '../widgets/number_field.dart';
 
 class ConvertScreen extends StatefulWidget {
   const ConvertScreen({super.key});
@@ -88,7 +89,7 @@ class _ConvertScreenState extends State<ConvertScreen> {
           Row(
             children: [
               Expanded(
-                child: _NumberField(
+                child: NumberField(
                   label: 'Ngày',
                   value: _lunarDay,
                   min: 1,
@@ -98,7 +99,7 @@ class _ConvertScreenState extends State<ConvertScreen> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _NumberField(
+                child: NumberField(
                   label: 'Tháng',
                   value: _lunarMonth,
                   min: 1,
@@ -109,7 +110,7 @@ class _ConvertScreenState extends State<ConvertScreen> {
               const SizedBox(width: 8),
               Expanded(
                 flex: 2,
-                child: _NumberField(
+                child: NumberField(
                   label: 'Năm',
                   value: _lunarYear,
                   min: 1900,
@@ -148,36 +149,6 @@ class _ConvertScreenState extends State<ConvertScreen> {
             ),
         ],
       ),
-    );
-  }
-}
-
-class _NumberField extends StatelessWidget {
-  final String label;
-  final int value;
-  final int min;
-  final int max;
-  final ValueChanged<int> onChanged;
-
-  const _NumberField({
-    required this.label,
-    required this.value,
-    required this.min,
-    required this.max,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      key: ValueKey('$label-$value'),
-      initialValue: '$value',
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(labelText: label, isDense: true),
-      onChanged: (text) {
-        final n = int.tryParse(text);
-        if (n != null && n >= min && n <= max) onChanged(n);
-      },
     );
   }
 }

@@ -1,15 +1,23 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'screens/calendar_screen.dart';
 import 'screens/convert_screen.dart';
+import 'screens/events_screen.dart';
 import 'services/ads_service.dart';
+import 'services/event_repository.dart';
+import 'services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('vi');
   await AdsService.instance.initialize();
+  await NotificationService.instance.initialize();
+  await EventRepository.instance.load();
+  unawaited(EventRepository.instance.rescheduleAll());
   runApp(const LunarCalendarApp());
 }
 
@@ -49,6 +57,7 @@ class _HomeShellState extends State<HomeShell> {
 
   static const _screens = [
     CalendarScreen(),
+    EventsScreen(),
     ConvertScreen(),
   ];
 
@@ -61,6 +70,7 @@ class _HomeShellState extends State<HomeShell> {
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.calendar_month), label: 'Lịch'),
+          NavigationDestination(icon: Icon(Icons.event), label: 'Sự kiện'),
           NavigationDestination(icon: Icon(Icons.swap_horiz), label: 'Chuyển đổi'),
         ],
       ),

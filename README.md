@@ -2,14 +2,15 @@
 
 Ứng dụng lịch âm dương trên Android, viết bằng Flutter. Xem lịch tháng với
 ngày dương và ngày âm song song, xem giờ/ngày hoàng đạo, can chi năm/tháng/
-ngày, lễ tết, và chuyển đổi ngày dương ↔ âm. Tích hợp quảng cáo AdMob
-(banner) để chuẩn bị publish lên Google Play.
+ngày, lễ tết, chuyển đổi ngày dương ↔ âm, và tạo sự kiện cá nhân (sinh nhật,
+giỗ...) theo ngày dương hoặc âm với nhắc lịch lặp lại hằng năm. Tích hợp
+quảng cáo AdMob (banner) để chuẩn bị publish lên Google Play.
 
 ## Cấu trúc dự án
 
 ```
 lib/
-  main.dart                    # Khởi tạo AdMob, cấu hình locale, chạy app
+  main.dart                    # Khởi tạo AdMob/thông báo/sự kiện, cấu hình locale, chạy app
   lunar/
     lunar_calendar.dart        # Thuật toán chuyển đổi dương <-> âm (Hồ Ngọc Đức)
     can_chi.dart                # Can-Chi năm/tháng/ngày/giờ
@@ -17,14 +18,23 @@ lib/
     holidays.dart               # Danh sách lễ tết cố định (dương + âm)
   models/
     day_info.dart                # Gộp thông tin 1 ngày: âm lịch, can chi, hoàng đạo, lễ
+    personal_event.dart          # Sự kiện cá nhân + tính ngày lặp lại hằng năm tiếp theo
   screens/
     calendar_screen.dart         # Lịch tháng dạng lưới
-    day_detail_sheet.dart        # Bottom sheet chi tiết 1 ngày
     convert_screen.dart          # Chuyển đổi dương <-> âm
+    events_screen.dart           # Danh sách sự kiện cá nhân
+    add_event_screen.dart        # Form thêm/sửa sự kiện cá nhân
   services/
     ads_service.dart             # Bọc AdMob banner
+    event_repository.dart        # Lưu trữ (shared_preferences) + phát thông báo khi có thay đổi
+    notification_service.dart    # Lên lịch nhắc sự kiện (flutter_local_notifications)
   widgets/
     banner_ad_widget.dart        # Widget hiển thị banner ads
+    day_detail_panel.dart        # Panel chi tiết ngày (dùng trong calendar_screen)
+    date_header_card.dart        # Thẻ tiêu đề ngày đang chọn
+    hoang_dao_hours.dart         # Lưới giờ hoàng đạo
+    number_field.dart            # Ô nhập số dùng chung (ngày/tháng/năm)
+    zodiac_icon.dart             # Emoji 12 con giáp
 tool/
   patch_signing.js             # CI: gắn signingConfig release vào build.gradle(.kts)
   proguard-rules-extra.pro     # CI: rule R8 giữ lại class WorkManager cần
@@ -153,6 +163,21 @@ flutter run -d chrome
      thập Advertising ID để cá nhân hoá quảng cáo).
    - Cung cấp **Chính sách quyền riêng tư** (Privacy Policy URL) — bắt
      buộc với app có quảng cáo.
+
+## Sự kiện cá nhân + nhắc lịch
+
+- Thêm sự kiện ở tab **Sự kiện**, chọn ngày dương hoặc âm — sự kiện luôn
+  lặp lại hằng năm vào đúng ngày/tháng đó (không hỗ trợ sự kiện chỉ xảy ra
+  một lần).
+- Ứng dụng dùng `flutter_local_notifications` để đặt thông báo nhắc, giờ
+  mặc định 8:00 sáng (chỉnh được từng sự kiện). Cần quyền
+  **POST_NOTIFICATIONS** (Android 13+) — app tự xin quyền này lúc mở lần
+  đầu; workflow CI đã tự thêm quyền này vào `AndroidManifest.xml`.
+- **Giới hạn cần biết**: app không có backend/server đẩy thông báo, nên khi
+  thêm một sự kiện, ứng dụng chỉ đặt sẵn lịch nhắc cho **5 lần lặp lại tiếp
+  theo** (khoảng 5 năm), rồi tự bổ sung thêm mỗi khi mở lại app. Nếu người
+  dùng không mở app trong hơn 5 năm liên tục, thông báo sẽ ngừng cho tới
+  lần mở lại tiếp theo. Đây là đánh đổi hợp lý cho một app không có server.
 
 ## Độ chính xác của lịch âm và bảng hoàng đạo
 

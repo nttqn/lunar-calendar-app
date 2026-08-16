@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/day_info.dart';
+import '../services/event_repository.dart';
 import '../utils/vi_date.dart';
 import '../widgets/banner_ad_widget.dart';
 import '../widgets/date_header_card.dart';
@@ -66,6 +67,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: EventRepository.instance,
+      builder: (context, _) => _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     final days = _gridDays();
     final weekCount = days.length ~/ 7;
     final selectedInfo = DayInfo.fromSolar(_selectedDate);
@@ -129,6 +137,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             final isSelected = date.year == _selectedDate.year &&
                                 date.month == _selectedDate.month &&
                                 date.day == _selectedDate.day;
+                            final hasEvent = EventRepository.instance
+                                .eventsOn(info)
+                                .isNotEmpty;
                             return Expanded(
                               child: _DayCell(
                                 date: date,
@@ -136,6 +147,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 inMonth: inMonth,
                                 isSunday: d == 6,
                                 isSelected: isSelected,
+                                hasEvent: hasEvent,
                                 onTap: () => _selectDate(date),
                               ),
                             );
@@ -146,7 +158,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ),
                   const SizedBox(height: 4),
                   const _LegendRow(),
-                  DayDetailPanel(info: selectedInfo),
+                  DayDetailPanel(
+                    info: selectedInfo,
+                    events: EventRepository.instance.eventsOn(selectedInfo),
+                  ),
                   HoangDaoHours(info: selectedInfo),
                   const BannerAdWidget(),
                   const SizedBox(height: 12),
@@ -222,6 +237,7 @@ class _LegendRow extends StatelessWidget {
         children: [
           item(Colors.red, 'Ngày lễ'),
           item(Colors.green, 'Ngày hoàng đạo'),
+          item(Colors.blue, 'Sự kiện cá nhân'),
           item(Colors.grey, 'Ngày hắc đạo'),
         ],
       ),
@@ -235,6 +251,7 @@ class _DayCell extends StatelessWidget {
   final bool inMonth;
   final bool isSunday;
   final bool isSelected;
+  final bool hasEvent;
   final VoidCallback onTap;
 
   const _DayCell({
@@ -243,6 +260,7 @@ class _DayCell extends StatelessWidget {
     required this.inMonth,
     required this.isSunday,
     required this.isSelected,
+    required this.hasEvent,
     required this.onTap,
   });
 
@@ -340,9 +358,36 @@ class _DayCell extends StatelessWidget {
             ),
             const SizedBox(height: 2),
             lunarLabel,
+            if (info.holidayName != null || hasEvent)
+              Padding(
+                padding: const EdgeInsets.only(top: 1),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (info.holidayName != null) const _Dot(Colors.red),
+                    if (info.holidayName != null && hasEvent)
+                      const SizedBox(width: 3),
+                    if (hasEvent) const _Dot(Colors.blue),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _Dot extends StatelessWidget {
+  final Color color;
+  const _Dot(this.color);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 4,
+      height: 4,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }
