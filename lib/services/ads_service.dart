@@ -13,7 +13,7 @@ class AdsService {
   AdsService._();
   static final AdsService instance = AdsService._();
 
-  static const String bannerAdUnitId = 'ca-app-pub-9078637596840810/1335618574';
+  static const String bannerAdUnitId = 'ca-app-pub-9078637596840810/4099910531';
 
   Future<void> initialize() async {
     if (kIsWeb) return;
