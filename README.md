@@ -152,8 +152,16 @@ flutter run -d chrome
    - Tạo app mới, điền mô tả, ảnh chụp màn hình, banner.
    - Khai báo **Data Safety** (bắt buộc vì có AdMob — AdMob có thể thu
      thập Advertising ID để cá nhân hoá quảng cáo).
-   - Cung cấp **Chính sách quyền riêng tư** (Privacy Policy URL) — bắt
-     buộc với app có quảng cáo.
+   - **Chính sách quyền riêng tư** (Privacy Policy URL) và **Child Safety
+     Standards**: dùng chung một trang, host qua GitHub Pages (không phải
+     Claude Artifact — bị crawler tự động của Google Play chặn/không tải
+     được ở lần đầu, xem `docs/index.html`):
+     - Privacy Policy URL: `https://nttqn.github.io/lunar-calendar-app/`
+     - Child Safety Standards URL: `https://nttqn.github.io/lunar-calendar-app/#csae`
+     - Đầu mối liên hệ an toàn trẻ em: KULgames — trungsmail@gmail.com
+     - Yêu cầu repo này phải ở chế độ **public** để GitHub Pages hoạt
+       động trên gói miễn phí (đã xác nhận không có keystore/mật khẩu/
+       secret nào từng bị commit trước khi chuyển public).
 
 ## Sự kiện cá nhân + nhắc lịch
 

@@ -13,6 +13,17 @@ intended for Google Play. There is no native `android/` (or `ios/`)
 directory in this repo — see "Android project is generated, not committed"
 below before assuming any Gradle/Manifest file exists locally.
 
+**This repo is public** (deliberately switched from private) because
+`docs/index.html` — the Privacy Policy + Child Safety Standards page
+Google Play requires — is served via GitHub Pages, which only works on
+the free plan for public repos. That page was originally a Claude
+Artifact; Play Console rejected it ("Invalid published standards" / not
+loading), most likely because Google's automated policy crawler can't get
+past whatever bot protection claude.ai serves. GitHub Pages is a plain
+static host with no such wall. Checked git history before flipping
+visibility — no keystore/password/secret was ever committed (the real
+release keystore lives outside the repo, see the signing section below).
+
 ## Commands
 
 Flutter is installed locally in this dev environment (`C:\src\flutter`,
