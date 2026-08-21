@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lịch Âm Dương — Chính sách quyền riêng tư &amp; An toàn trẻ em</title>
+<style>
+  :root {
+    --bg: #faf7f0;
+    --surface: #ffffff;
+    --surface-2: #f1ecdf;
+    --text: #2a2420;
+    --text-muted: #6b6255;
+    --accent: #3b4a8b;
+    --accent-warm: #b8863b;
+    --border: #e4dcc9;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14182a;
+      --surface: #1c2140;
+      --surface-2: #232952;
+      --text: #ede8dc;
+      --text-muted: #a9a6c5;
+      --accent: #f0c674;
+      --accent-warm: #f0c674;
+      --border: #2e345c;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #14182a;
+    --surface: #1c2140;
+    --surface-2: #232952;
+    --text: #ede8dc;
+    --text-muted: #a9a6c5;
+    --accent: #f0c674;
+    --accent-warm: #f0c674;
+    --border: #2e345c;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2 {
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+    color: var(--text);
+  }
+
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  header.top {
+    padding: 56px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+
+  .eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-warm);
+    font-weight: 600;
+    margin: 0 0 10px;
+  }
+
+  h1.title {
+    font-size: clamp(1.7rem, 4vw, 2.3rem);
+    font-weight: 600;
+    margin: 0 0 8px;
+  }
+
+  .meta {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .glance {
+    background: var(--surface-2);
+    border-left: 3px solid var(--accent-warm);
+    border-radius: 6px;
+    padding: 22px 24px;
+    margin-bottom: 48px;
+  }
+
+  .glance h2 { font-size: 1.05rem; margin: 0 0 14px; }
+  .glance ul { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 10px; }
+  .glance li { max-width: 62ch; }
+
+  section.clause {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 4px 20px;
+    padding: 28px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  section.clause:last-of-type { border-bottom: 1px solid var(--border); }
+
+  .num {
+    font-family: Georgia, serif;
+    font-size: 1.3rem;
+    color: var(--accent);
+    opacity: 0.55;
+    line-height: 1.4;
+  }
+
+  .clause h2 { grid-column: 2; font-size: 1.15rem; margin: 0 0 10px; }
+  .clause .body { grid-column: 2; max-width: 62ch; color: var(--text); }
+  .clause .body p { margin: 0 0 12px; }
+  .clause .body p:last-child { margin-bottom: 0; }
+  .clause .body ul { margin: 8px 0 12px; padding-left: 1.2em; }
+  .clause .body li { margin-bottom: 6px; }
+
+  .highlight {
+    background: var(--surface-2);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 12px 0;
+  }
+
+  @media (max-width: 560px) {
+    section.clause { grid-template-columns: 1fr; }
+    .num { display: none; }
+    .clause h2, .clause .body { grid-column: 1; }
+  }
+
+  footer.bottom {
+    margin-top: 48px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  footer.bottom a { color: var(--accent); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">Lịch Âm Dương — nhà phát triển KULgames</p>
+    <h1 class="title">Chính sách quyền riêng tư &amp; An toàn trẻ em</h1>
+    <p class="meta">Có hiệu lực từ ngày 16 tháng 8 năm 2026</p>
+  </header>
+
+  <div class="glance">
+    <h2>Tóm tắt nhanh</h2>
+    <ul>
+      <li>Ứng dụng <strong>Lịch Âm Dương</strong>, phát hành bởi nhà phát triển <strong>KULgames</strong> trên Google Play, <strong>không yêu cầu tài khoản</strong> và không thu thập tên, email hay số điện thoại của bạn.</li>
+      <li>Sự kiện cá nhân bạn nhập (sinh nhật, giỗ, ghi chú...) <strong>chỉ lưu trên chính điện thoại của bạn</strong> — không gửi lên bất kỳ máy chủ nào.</li>
+      <li>Quảng cáo trong app do <strong>Google AdMob</strong> cung cấp, có thể thu thập mã quảng cáo thiết bị (Advertising ID) để cá nhân hoá quảng cáo.</li>
+      <li>Ứng dụng <strong>không có tính năng chia sẻ nội dung hay tương tác giữa người dùng</strong> và cam kết không khoan nhượng với nội dung bóc lột/xâm hại tình dục trẻ em (CSAE) — xem mục 7.</li>
+    </ul>
+  </div>
+
+  <section class="clause">
+    <span class="num">01</span>
+    <h2>Giới thiệu</h2>
+    <div class="body">
+      <p>Chính sách này áp dụng cho ứng dụng di động <strong>Lịch Âm Dương</strong> (sau đây gọi là "ứng dụng"), do nhà phát triển <strong>KULgames</strong> xây dựng và phát hành trên Google Play. Chính sách giải thích ứng dụng thu thập, sử dụng và bảo vệ thông tin của bạn như thế nào khi bạn cài đặt và sử dụng ứng dụng.</p>
+    </div>
+  </section>
+
+  <section class="clause">
+    <span class="num">02</span>
+    <h2>Dữ liệu chúng tôi không thu thập</h2>
+    <div class="body">
+      <p>Ứng dụng không có chức năng đăng ký hay đăng nhập tài khoản, vì vậy chúng tôi không thu thập:</p>
+      <ul>
+        <li>Họ tên, địa chỉ email, số điện thoại</li>
+        <li>Vị trí chính xác của bạn</li>
+        <li>Danh bạ, ảnh, hay tệp khác trên thiết bị</li>
+      </ul>
+      <p>Toàn bộ tính năng xem lịch âm/dương, giờ hoàng đạo và chuyển đổi ngày tháng hoạt động hoàn toàn ngoại tuyến, không gửi dữ liệu nào ra ngoài thiết bị của bạn.</p>
+    </div>
+  </section>
+
+  <section class="clause">
+    <span class="num">03</span>
+    <h2>Dữ liệu lưu trên thiết bị của bạn</h2>
+    <div class="body">
+      <p>Khi bạn tạo một sự kiện cá nhân (tên sự kiện, ghi chú, ngày âm/dương, giờ nhắc), thông tin này được lưu trong bộ nhớ cục bộ của ứng dụng ngay trên điện thoại bạn. Chúng tôi — nhà phát triển KULgames — <strong>không có quyền truy cập</strong> vào nội dung này, vì nó không bao giờ rời khỏi thiết bị của bạn. Nếu bạn gỡ cài đặt ứng dụng, toàn bộ dữ liệu này sẽ bị xoá.</p>
+      <p>Ứng dụng xin quyền gửi <strong>thông báo</strong> (notification) trên thiết bị để nhắc bạn vào ngày có sự kiện đã lưu. Việc lên lịch thông báo diễn ra hoàn toàn trên máy bạn, không thông qua máy chủ đẩy thông báo (push server) nào.</p>
+    </div>
+  </section>
+
+  <section class="clause">
+    <span class="num">04</span>
+    <h2>Quảng cáo (Google AdMob)</h2>
+    <div class="body">
+      <p>Ứng dụng hiển thị quảng cáo banner thông qua <strong>Google AdMob</strong> để duy trì việc phát triển miễn phí. AdMob có thể tự động thu thập một số thông tin từ thiết bị của bạn, bao gồm mã quảng cáo (Advertising ID), thông tin thiết bị chung, và dữ liệu tương tác quảng cáo, nhằm hiển thị quảng cáo phù hợp hơn và đo lường hiệu quả quảng cáo.</p>
+      <p>Việc thu thập này do Google thực hiện theo chính sách riêng của Google, không phải do chúng tôi trực tiếp kiểm soát. Bạn có thể xem chi tiết tại <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Chính sách quyền riêng tư của Google</a> và <a href="https://support.google.com/admob/answer/6128543" target="_blank" rel="noopener">cách AdMob sử dụng dữ liệu</a>. Trên nhiều thiết bị Android, bạn có thể giới hạn hoặc đặt lại Advertising ID trong phần Cài đặt → Quyền riêng tư của máy.</p>
+    </div>
+  </section>
+
+  <section class="clause">
+    <span class="num">05</span>
+    <h2>Chia sẻ dữ liệu với bên thứ ba</h2>
+    <div class="body">
+      <p>Ngoài Google AdMob (mục 4), chúng tôi không chia sẻ, bán hay trao đổi bất kỳ dữ liệu nào với bên thứ ba khác. Ứng dụng không tích hợp mạng xã hội, không đồng bộ đám mây, và không có máy chủ backend riêng để lưu trữ dữ liệu người dùng.</p>
+    </div>
+  </section>
+
+  <section class="clause">
+    <span class="num">06</span>
+    <h2>Trẻ em</h2>
+    <div class="body">
+      <p>Ứng dụng không hướng đến đối tượng trẻ em dưới 13 tuổi và không cố ý thu thập thông tin cá nhân từ trẻ em. Nếu bạn cho rằng con em mình đã cung cấp thông tin cho ứng dụng theo cách không phù hợp, vui lòng liên hệ với chúng tôi để được hỗ trợ gỡ bỏ.</p>
+    </div>
+  </section>
+
+  <section class="clause" id="csae">
+    <span class="num">07</span>
+    <h2>Tiêu chuẩn an toàn trẻ em — Nghiêm cấm bóc lột và xâm hại tình dục trẻ em (CSAE)</h2>
+    <div class="body">
+      <p>Nhà phát triển <strong>KULgames</strong>, đơn vị phát hành ứng dụng <strong>Lịch Âm Dương</strong>, cam kết và công khai tiêu chuẩn sau: <strong>nghiêm cấm tuyệt đối mọi nội dung hoặc hành vi bóc lột và xâm hại tình dục trẻ em (Child Sexual Abuse and Exploitation — CSAE)</strong> trên mọi sản phẩm do KULgames phát triển, phù hợp với <a href="https://support.google.com/googleplay/android-developer/answer/9878809" target="_blank" rel="noopener">Tiêu chuẩn an toàn trẻ em của Google Play</a>.</p>
+      <p>Ứng dụng Lịch Âm Dương <strong>không có tính năng cho phép người dùng tạo, đăng tải hay chia sẻ nội dung với người dùng khác</strong>, và <strong>không có tính năng nhắn tin hay tương tác xã hội</strong> giữa những người dùng với nhau. Toàn bộ dữ liệu (sự kiện cá nhân) chỉ hiển thị cho chính người tạo ra nó, lưu cục bộ trên thiết bị, không được tải lên hay hiển thị công khai ở bất kỳ đâu — vì vậy ứng dụng không có cơ chế kỹ thuật nào để phát tán, lưu trữ hay hiển thị nội dung CSAE.</p>
+      <div class="highlight">
+        <p style="margin:0 0 4px"><strong>Đầu mối liên hệ về an toàn trẻ em</strong></p>
+        <p style="margin:0">KULgames — email: <a href="mailto:trungsmail@gmail.com">trungsmail@gmail.com</a></p>
+      </div>
+      <p>Nếu bạn phát hiện hoặc nghi ngờ có nội dung/hành vi vi phạm liên quan đến ứng dụng này, vui lòng báo cáo ngay cho chúng tôi qua email ở trên. Chúng tôi sẽ xử lý kịp thời và, khi cần thiết, báo cáo cho cơ quan chức năng có thẩm quyền theo đúng quy định pháp luật hiện hành.</p>
+    </div>
+  </section>
+
+  <section class="clause">
+    <span class="num">08</span>
+    <h2>Thay đổi chính sách</h2>
+    <div class="body">
+      <p>Chính sách này có thể được cập nhật theo thời gian, ví dụ khi ứng dụng có thêm tính năng mới. Ngày hiệu lực mới nhất luôn được hiển thị ở đầu trang. Việc bạn tiếp tục sử dụng ứng dụng sau khi chính sách được cập nhật đồng nghĩa với việc bạn chấp nhận các thay đổi đó.</p>
+    </div>
+  </section>
+
+  <footer class="bottom">
+    <p>Nhà phát triển: <strong>KULgames</strong>. Có câu hỏi về quyền riêng tư hoặc an toàn trẻ em? Liên hệ <a href="mailto:trungsmail@gmail.com">trungsmail@gmail.com</a>.</p>
+  </footer>
+</div>
+</body>
+</html>
