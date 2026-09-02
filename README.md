@@ -162,6 +162,13 @@ flutter run -d chrome
      - Yêu cầu repo này phải ở chế độ **public** để GitHub Pages hoạt
        động trên gói miễn phí (đã xác nhận không có keystore/mật khẩu/
        secret nào từng bị commit trước khi chuyển public).
+   - **app-ads.txt**: đã có sẵn tại `https://nttqn.github.io/app-ads.txt`
+     (repo GitHub Pages gốc riêng, dùng chung cho mọi app cùng tài khoản
+     AdMob `pub-9078637596840810`, bao gồm cả chess-app). Không cần sửa gì
+     trong file đó — chỉ cần khai **Developer website** của listing Lịch
+     Âm Dương trên Play Console là một URL thuộc domain
+     `https://nttqn.github.io` (trình quét app-ads.txt chỉ kiểm tra gốc
+     domain, không quan tâm đường dẫn cụ thể).
 
 ## Sự kiện cá nhân + nhắc lịch
 
