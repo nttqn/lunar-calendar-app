@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-/// Wraps a persistent AdMob banner. Deliberately banner-only (no
-/// interstitial): this app gets opened many times a day for a quick
-/// glance, so an interstitial on every open would work against the "nhẹ,
-/// ít quảng cáo" positioning this app is going for.
+/// Wraps a persistent AdMob banner. Deliberately banner-only in the UI (no
+/// interstitial shown anywhere yet): this app gets opened many times a day
+/// for a quick glance, so an interstitial on every open would work against
+/// the "nhẹ, ít quảng cáo" positioning this app is going for.
+/// [interstitialAdUnitId] is defined for when that changes, but nothing
+/// currently loads or shows one.
 ///
 /// `google_mobile_ads` only supports Android/iOS, so every entry point
 /// here is a no-op on web/desktop — keeps `flutter run -d chrome` usable
@@ -13,7 +15,16 @@ class AdsService {
   AdsService._();
   static final AdsService instance = AdsService._();
 
-  static const String bannerAdUnitId = 'ca-app-pub-9078637596840810/4099910531';
+  /// AdMob registers each platform as a separate "app", so Android and iOS
+  /// have distinct ad unit IDs under the same `pub-9078637596840810`
+  /// account even though it's the same Lịch Âm Dương listing.
+  static String get bannerAdUnitId => defaultTargetPlatform == TargetPlatform.iOS
+      ? 'ca-app-pub-9078637596840810/6692473766'
+      : 'ca-app-pub-9078637596840810/4099910531';
+
+  static String get interstitialAdUnitId => defaultTargetPlatform == TargetPlatform.iOS
+      ? 'ca-app-pub-9078637596840810/6921021121'
+      : '';
 
   Future<void> initialize() async {
     if (kIsWeb) return;

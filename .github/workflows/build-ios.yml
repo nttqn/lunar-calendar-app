@@ -39,6 +39,22 @@ jobs:
       - name: Generate iOS platform project
         run: flutter create --platforms=ios --org com.trungapps --project-name amlich .
 
+      # AdMob registers Android and iOS as separate "apps", so this is a
+      # distinct App ID from the Android manifest's ADMOB_APP_ID — falls
+      # back to Google's public iOS test App ID if the secret is unset,
+      # same pattern as the Android workflow.
+      - name: Patch Info.plist (AdMob App ID)
+        env:
+          ADMOB_APP_ID_IOS: ${{ secrets.ADMOB_APP_ID_IOS }}
+        run: |
+          set -e
+          APP_ID="${ADMOB_APP_ID_IOS:-ca-app-pub-3940256099942544~1458002511}"
+          if [ -z "${ADMOB_APP_ID_IOS}" ]; then
+            echo "::warning::ADMOB_APP_ID_IOS secret not set — using Google's TEST AdMob App ID. Ads will show as test ads only."
+          fi
+          /usr/libexec/PlistBuddy -c "Add :GADApplicationIdentifier string ${APP_ID}" ios/Runner/Info.plist
+          cat ios/Runner/Info.plist
+
       # google_mobile_ads (and other SDKs shipping prebuilt XCFrameworks)
       # fails with "Include of non-modular header inside framework module"
       # unless CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES=YES is

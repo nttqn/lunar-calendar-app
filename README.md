@@ -92,13 +92,23 @@ flutter run -d chrome
 
 ## Trước khi publish lên Google Play — checklist
 
-1. **Tài khoản AdMob thật** — đã cấu hình:
+1. **Tài khoản AdMob thật** — đã cấu hình. AdMob coi Android và iOS là hai
+   "app" riêng biệt dù cùng một listing Lịch Âm Dương, nên mỗi nền tảng có
+   App ID + Ad unit ID banner riêng (cùng tài khoản `pub-9078637596840810`):
    - `bannerAdUnitId` trong
-     [lib/services/ads_service.dart](lib/services/ads_service.dart) đã là
-     Ad unit ID thật.
-   - App ID thật cần được thêm làm GitHub secret `ADMOB_APP_ID` (Settings →
-     Secrets and variables → Actions → New repository secret) — **secret
-     này do bạn tự thêm trên GitHub**, không thể set qua code/CI.
+     [lib/services/ads_service.dart](lib/services/ads_service.dart) tự
+     chọn theo nền tảng (`defaultTargetPlatform`) — Android
+     `.../4099910531`, iOS `.../6692473766`.
+   - `interstitialAdUnitId` (iOS: `.../6921021121`) đã lưu sẵn cho tương
+     lai — **chưa có logic hiển thị interstitial nào trong app**, đây là
+     lựa chọn có chủ đích (xem ghi chú "banner-only" trong
+     `ads_service.dart`), chỉ lưu ID để dùng sau nếu cần.
+   - App ID thật cần được thêm làm GitHub secret — **do bạn tự thêm trên
+     GitHub**, không thể set qua code/CI:
+     | Secret | Dùng cho |
+     |---|---|
+     | `ADMOB_APP_ID` | Android (`build-apk.yml`) |
+     | `ADMOB_APP_ID_IOS` | iOS (`build-ios.yml`, patch vào `Info.plist`) |
    - Test ads chỉ để dev thử, **không được** tự bấm quảng cáo của chính
      mình sau khi dùng ID thật — vi phạm chính sách AdMob có thể bị khóa
      tài khoản.
@@ -169,6 +179,33 @@ flutter run -d chrome
      Âm Dương trên Play Console là một URL thuộc domain
      `https://nttqn.github.io` (trình quét app-ads.txt chỉ kiểm tra gốc
      domain, không quan tâm đường dẫn cụ thể).
+
+## Build iOS (TestFlight / App Store)
+
+`.github/workflows/build-ios.yml` build và ký `.ipa` thật trên
+`macos-latest` — máy này không có Mac nên không build/ký được cục bộ.
+Bundle ID: `com.trungapps.amlich`, Apple Developer Team `WGZYDZH4KR`.
+
+Cần 6 secret (tự thêm trên GitHub, không set qua CI được):
+
+| Secret | Dùng cho |
+|---|---|
+| `IOS_P12_BASE64` / `IOS_P12_PASSWORD` | Certificate ký release (Apple Distribution) |
+| `IOS_MOBILEPROVISION_BASE64` | Provisioning profile "Lich Am Duong App Store" |
+| `ASC_KEY_ID` / `ASC_ISSUER_ID` / `ASC_API_KEY_P8_BASE64` | App Store Connect API key, dùng để upload TestFlight (dùng chung key đã tạo cho number99-app, cùng Apple team) |
+| `ADMOB_APP_ID_IOS` | App ID AdMob riêng cho app iOS (khác App ID Android) |
+
+Certificate/provisioning profile **không** tạo qua CI được — phải tự tạo
+thủ công trên Apple Developer portal (CSR sinh bằng `openssl` cục bộ, sau
+đó upload lên portal để lấy `.cer`, rồi tạo profile App Store). File gốc
+(`.p12`, `.mobileprovision`, `.p8`...) không commit vào git, chỉ tồn tại
+cục bộ trên máy dùng để tạo secret, xem `.gitignore`.
+
+Push lên `main` chỉ **build + ký**, upload artifact `.ipa` để tải về —
+**không** tự động upload TestFlight. Muốn upload TestFlight, vào tab
+**Actions** → **Build iOS IPA** → **Run workflow** → tick ô "Upload the
+build to TestFlight" (opt-in có chủ đích, giống cách `.aab` Android không
+bao giờ tự upload Play Console).
 
 ## Sự kiện cá nhân + nhắc lịch
 
