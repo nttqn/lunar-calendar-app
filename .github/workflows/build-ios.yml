@@ -122,7 +122,7 @@ jobs:
       - name: Generate launcher icon
         run: |
           if [ -f assets/icon/icon.png ]; then
-            dart run flutter_launcher_icons
+            dart run flutter_launcher_icons -f flutter_launcher_icons-ios.yaml
           else
             echo "::notice::No assets/icon/icon.png yet — using Flutter's default launcher icon."
           fi
