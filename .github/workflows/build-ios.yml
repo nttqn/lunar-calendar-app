@@ -1,0 +1,152 @@
+name: Build iOS IPA
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      upload_testflight:
+        description: 'Upload the build to TestFlight after a successful archive'
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter version
+        run: flutter --version
+
+      # Flutter 3.24+ defaults iOS plugin resolution to Swift Package
+      # Manager, which turns each plugin into its own Package.swift target.
+      # Those targets categorically can't carry a provisioning profile, and
+      # since this is a tool-level (not project-level) setting it must be
+      # set fresh on every CI runner, before `flutter create`.
+      - name: Force CocoaPods instead of Swift Package Manager
+        run: flutter config --no-enable-swift-package-manager
+
+      # ios/ is intentionally not committed to the repo (see .gitignore),
+      # same rationale as android/ — regenerated fresh on every CI run.
+      - name: Generate iOS platform project
+        run: flutter create --platforms=ios --org com.trungapps --project-name amlich .
+
+      # google_mobile_ads (and other SDKs shipping prebuilt XCFrameworks)
+      # fails with "Include of non-modular header inside framework module"
+      # unless CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES=YES is
+      # set for every pod target — patched into the Podfile's existing
+      # post_install hook here, and into the app target's own
+      # Debug/Release.xcconfig further down. Also raises the deployment
+      # target: Flutter's default (12.0) is lower than several current
+      # plugins expect.
+      - name: Patch Podfile (module fix + deployment target)
+        run: |
+          set -e
+          perl -0777 -pi -e "s/platform :ios, '12\.0'/platform :ios, '13.0'/" ios/Podfile
+          perl -0777 -pi -e "s/flutter_additional_ios_build_settings\(target\)/flutter_additional_ios_build_settings(target)\n    target.build_configurations.each do |config|\n      config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'\n    end/" ios/Podfile
+          cat ios/Podfile
+
+      # Imports the .p12 (cert + private key) into a temporary keychain —
+      # this action handles the create/unlock/cleanup keychain dance
+      # rather than hand-rolling `security` CLI calls for it.
+      - name: Import signing certificate
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.IOS_P12_BASE64 }}
+          p12-password: ${{ secrets.IOS_P12_PASSWORD }}
+
+      # Xcode resolves a provisioning profile by its embedded bundle ID +
+      # certificate, not by filename, so the name here doesn't matter.
+      - name: Install provisioning profile
+        env:
+          MOBILEPROVISION_BASE64: ${{ secrets.IOS_MOBILEPROVISION_BASE64 }}
+        run: |
+          set -e
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$MOBILEPROVISION_BASE64" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/amlich.mobileprovision
+
+      # CRITICAL: these 4 settings must NOT be passed as xcodebuild
+      # command-line overrides — that applies them to every target the
+      # build touches, not just the app target, and CocoaPods library
+      # targets can't have a provisioning profile at all ("does not
+      # support provisioning profiles ... Set the provisioning profile
+      # value to Automatic"). Appending to Release.xcconfig instead scopes
+      # them to the app target only, since it's the Release configuration's
+      # own baseConfigurationReference in Flutter's generated project.
+      - name: Configure manual release signing (app target only, via xcconfig)
+        run: |
+          set -e
+          printf '%s\n' \
+            'DEVELOPMENT_TEAM=WGZYDZH4KR' \
+            'CODE_SIGN_STYLE=Manual' \
+            'CODE_SIGN_IDENTITY=Apple Distribution' \
+            'PROVISIONING_PROFILE_SPECIFIER=Lich Am Duong App Store' \
+            'CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES=YES' >> ios/Flutter/Release.xcconfig
+          printf '%s\n' \
+            'CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES=YES' >> ios/Flutter/Debug.xcconfig
+          cat ios/Flutter/Release.xcconfig
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Write ExportOptions.plist
+        run: |
+          set -e
+          printf '%s\n' \
+            '<?xml version="1.0" encoding="UTF-8"?>' \
+            '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' \
+            '<plist version="1.0">' \
+            '<dict>' \
+            '  <key>method</key>' \
+            '  <string>app-store</string>' \
+            '  <key>teamID</key>' \
+            '  <string>WGZYDZH4KR</string>' \
+            '  <key>signingStyle</key>' \
+            '  <string>manual</string>' \
+            '  <key>signingCertificate</key>' \
+            '  <string>Apple Distribution</string>' \
+            '  <key>provisioningProfiles</key>' \
+            '  <dict>' \
+            '    <key>com.trungapps.amlich</key>' \
+            '    <string>Lich Am Duong App Store</string>' \
+            '  </dict>' \
+            '</dict>' \
+            '</plist>' > ios/ExportOptions.plist
+          cat ios/ExportOptions.plist
+
+      - name: Analyze (non-blocking)
+        run: flutter analyze || true
+
+      - name: Build signed IPA
+        run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: amlich-release-ipa
+          path: build/ios/ipa/*.ipa
+          retention-days: 30
+
+      # Opt-in only (workflow_dispatch checkbox) — submitting a build to
+      # App Store Connect should be a deliberate action, same policy as
+      # never auto-uploading the Android .aab to Play Console.
+      - name: Upload to TestFlight
+        if: ${{ github.event.inputs.upload_testflight == 'true' }}
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+        run: |
+          set -e
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$ASC_API_KEY_P8_BASE64" | base64 --decode > ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
+          IPA_PATH=$(ls build/ios/ipa/*.ipa | head -n1)
+          xcrun altool --upload-app -f "$IPA_PATH" -t ios --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"

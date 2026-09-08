@@ -18,6 +18,19 @@ build/
 *.keystore
 key.properties
 
+# iOS signing material — never commit these either.
+*.p12
+*.p12.b64
+*.p8
+*.p8.b64
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.mobileprovision.b64
+*.pem
+ios-dist.key
+profile.plist
+
 # IDE
 .idea/
 .vscode/
