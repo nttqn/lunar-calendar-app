@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../models/day_info.dart';
 import '../services/event_repository.dart';
+import '../services/settings_repository.dart';
 import '../utils/vi_date.dart';
 import '../widgets/banner_ad_widget.dart';
 import '../widgets/date_header_card.dart';
 import '../widgets/day_detail_panel.dart';
 import '../widgets/hoang_dao_hours.dart';
 import '../widgets/max_width_body.dart';
+import 'settings_screen.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -27,7 +29,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     DateTime.now().day,
   );
 
-  static const double _rowHeight = 56;
+  static const double _baseRowHeight = 56;
+  static const double _baseCircleSize = 28;
 
   void _changeMonth(int delta) {
     setState(() {
@@ -74,7 +77,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: EventRepository.instance,
+      listenable: Listenable.merge([
+        EventRepository.instance,
+        SettingsRepository.instance,
+      ]),
       builder: (context, _) => _buildScaffold(context),
     );
   }
@@ -83,6 +89,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final days = _gridDays();
     final weekCount = days.length ~/ 7;
     final selectedInfo = DayInfo.fromSolar(_selectedDate);
+    // The grid's fixed-size pieces (row height, the "today" circle) don't
+    // automatically grow with the app-wide text scale the way Text widgets
+    // do, so they're scaled here to match — otherwise a larger font size
+    // setting would make day numbers overflow a circle sized for the
+    // default (smallest) font.
+    final scale = SettingsRepository.instance.fontScaleFactor;
+    final rowHeight = _baseRowHeight * scale;
+    final circleSize = _baseCircleSize * scale;
 
     return Scaffold(
       appBar: AppBar(
@@ -94,6 +108,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
             label: const Text('HÔM NAY'),
             style: TextButton.styleFrom(
               foregroundColor: Colors.orange.shade700,
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Cài đặt',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
             ),
           ),
         ],
@@ -136,7 +157,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     Column(
                       children: List.generate(weekCount, (w) {
                         return SizedBox(
-                          height: _rowHeight,
+                          height: rowHeight,
                           child: Row(
                             children: List.generate(7, (d) {
                               final date = days[w * 7 + d];
@@ -158,6 +179,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   isSunday: d == 6,
                                   isSelected: isSelected,
                                   hasEvent: hasEvent,
+                                  circleSize: circleSize,
                                   onTap: () => _selectDate(date),
                                 ),
                               );
@@ -262,6 +284,7 @@ class _DayCell extends StatelessWidget {
   final bool isSunday;
   final bool isSelected;
   final bool hasEvent;
+  final double circleSize;
   final VoidCallback onTap;
 
   const _DayCell({
@@ -271,6 +294,7 @@ class _DayCell extends StatelessWidget {
     required this.isSunday,
     required this.isSelected,
     required this.hasEvent,
+    required this.circleSize,
     required this.onTap,
   });
 
@@ -350,8 +374,8 @@ class _DayCell extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 28,
-              height: 28,
+              width: circleSize,
+              height: circleSize,
               alignment: Alignment.center,
               decoration: info.isToday
                   ? BoxDecoration(

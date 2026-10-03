@@ -207,6 +207,16 @@ Push lên `main` chỉ **build + ký**, upload artifact `.ipa` để tải về 
 build to TestFlight" (opt-in có chủ đích, giống cách `.aab` Android không
 bao giờ tự upload Play Console).
 
+## Cỡ chữ tùy chỉnh
+
+Bấm icon ⚙️ (Cài đặt) ở góc phải màn Lịch để chọn cỡ chữ: **Nhỏ** (mặc
+định — kích thước gốc của app từ trước đến giờ), **Vừa**, **Lớn**. Áp dụng
+cho toàn bộ ứng dụng ngay lập tức qua `MediaQuery.textScaler` ở
+`main.dart`, lưu lại bằng `shared_preferences`
+(`lib/services/settings_repository.dart`). Lưới lịch tháng
+(`calendar_screen.dart`) tự giãn chiều cao hàng và vòng tròn "hôm nay"
+theo cùng tỉ lệ để chữ to hơn không bị tràn ra ngoài.
+
 ## Sự kiện cá nhân + nhắc lịch
 
 - Thêm sự kiện ở tab **Sự kiện**, chọn ngày dương hoặc âm, và chọn kiểu lặp:

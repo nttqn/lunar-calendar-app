@@ -10,6 +10,7 @@ import 'screens/events_screen.dart';
 import 'services/ads_service.dart';
 import 'services/event_repository.dart';
 import 'services/notification_service.dart';
+import 'services/settings_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +18,7 @@ Future<void> main() async {
   await AdsService.instance.initialize();
   await NotificationService.instance.initialize();
   await EventRepository.instance.load();
+  await SettingsRepository.instance.load();
   unawaited(EventRepository.instance.rescheduleAll());
   runApp(const LunarCalendarApp());
 }
@@ -26,21 +28,38 @@ class LunarCalendarApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Lịch Âm Dương',
-      debugShowCheckedModeBanner: false,
-      locale: const Locale('vi'),
-      supportedLocales: const [Locale('vi'), Locale('en')],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      theme: ThemeData(
-        colorSchemeSeed: Colors.orange,
-        useMaterial3: true,
-      ),
-      home: const HomeShell(),
+    return ListenableBuilder(
+      listenable: SettingsRepository.instance,
+      builder: (context, _) {
+        return MaterialApp(
+          title: 'Lịch Âm Dương',
+          debugShowCheckedModeBanner: false,
+          locale: const Locale('vi'),
+          supportedLocales: const [Locale('vi'), Locale('en')],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          theme: ThemeData(
+            colorSchemeSeed: Colors.orange,
+            useMaterial3: true,
+          ),
+          // Scales every Text widget app-wide by the user's chosen font
+          // size — the "small" option is a no-op (factor 1.0), preserving
+          // the app's original look exactly as the default.
+          builder: (context, child) {
+            final scale = SettingsRepository.instance.fontScaleFactor;
+            return MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(scale)),
+              child: child!,
+            );
+          },
+          home: const HomeShell(),
+        );
+      },
     );
   }
 }

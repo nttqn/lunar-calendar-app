@@ -134,6 +134,20 @@ bug is in this repo's code.
 
 ## Architecture
 
+**Font size (`lib/models/font_scale.dart`, `lib/services/settings_repository.dart`)**:
+`FontScaleOption.small` is `factor: 1.0` — the app's original/default text
+size, not a separate "no setting" state. The scale is applied exactly
+once, app-wide, via `MediaQuery.textScaler` in `main.dart`'s `MaterialApp.builder`
+(not per-widget), so any new screen gets scaling for free. The one place
+that needed manual adjustment is `calendar_screen.dart`'s month grid:
+`TextScaler` only grows `Text` widgets, not the fixed-size `Container`s
+around them (the "today" circle, each week row's height), so those are
+separately multiplied by the same `SettingsRepository.instance.fontScaleFactor`
+to avoid the day-number overflowing its circle at the two larger sizes.
+Any other screen that puts text inside a tightly fixed-size box (not just
+flowing in a Column/ListView) needs the same treatment — check visually at
+the "Lớn" setting before assuming a new layout is fine.
+
 **Lunar calendar math (`lib/lunar/lunar_calendar.dart`)** is a from-scratch
 Dart port of the astronomical algorithm published by Hồ Ngọc Đức (new
 moon + sun longitude, not a lookup table — accurate across centuries, not
